@@ -24,8 +24,8 @@ namespace mudock {
 #ifndef __CUDACC__
   // TODO check that the object type and the kernel impl are the same
   template<typename queue_type>
-  struct adt_score: public scoring<queue_type> {
-    adt_score(std::shared_ptr<scratchpad<queue_type>> _scratch,
+  struct x_score: public scoring<queue_type> {
+    x_score(std::shared_ptr<scratchpad<queue_type>> _scratch,
               std::shared_ptr<scratchpad<queue_type>> _device_scratch,
               dynamic_molecule &protein)
         : scoring<queue_type>(_scratch),
