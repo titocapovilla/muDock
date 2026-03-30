@@ -212,7 +212,7 @@ namespace mudock {
 
       fp_type *scores_b = score_b.dev_pointer();
 
-      kernel = std::make_unique<adt_score_kernel<queue_type>>(scores_per_ligand,
+      kernel = std::make_unique<x_score_kernel<queue_type>>(scores_per_ligand,
                                                               batch_ligands,
                                                               batch_atoms,
                                                               num_atoms_b,
@@ -290,7 +290,7 @@ namespace mudock {
     buffer_vector<int, queue_type> nonbond_xB;
 
     std::shared_ptr<scratchpad<queue_type>> device_scratch;
-    std::unique_ptr<adt_score_kernel<queue_type>> kernel;
+    std::unique_ptr<x_score_kernel<queue_type>> kernel;
 
     void teardown_impl(batch<static_molecule> &batch) override {
       assert(batch.num_ligands == batch_ligands && "Scoring algorithm received different batch for teardown");

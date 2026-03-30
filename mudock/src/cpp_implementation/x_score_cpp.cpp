@@ -1,7 +1,7 @@
 #include <cstring>
 #include <mudock/chem/autodock_ligand.hpp>
 #include <mudock/chem/mehler_solmajer.hpp>
-#include <mudock/cpp_implementation/adt_score_cpp.hpp>
+#include <mudock/cpp_implementation/x_score_cpp.hpp>
 
 #define FLATTENED_2D(x, y, index_x)              ((y) * index_x + (x))
 #define FLATTENED_3D(x, y, z, index_x, index_xy) (index_xy * (z) + (y) * index_x + (x))
@@ -206,8 +206,8 @@ namespace mudock {
   };
 
   template<>
-  void adt_score_kernel<queue_cpp>::operator()() {
-    q->invoke_kernel<this->adt_region_name>(calc_energy,
+  void x_score_kernel<queue_cpp>::operator()() {
+    q->invoke_kernel<this->x_region_name>(calc_energy,
                                             batch_atoms,
                                             batch_ligands,
                                             scores_per_ligand,

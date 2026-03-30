@@ -1,7 +1,7 @@
 #pragma once
 
-#include <mudock/compute/adt_score.hpp>
-#include <mudock/compute/adt_score_kernel.hpp>
+#include <mudock/compute/x_score.hpp>
+#include <mudock/compute/x_score_kernel.hpp>
 #include <mudock/cpp_implementation/queue_cpp.hpp>
 
 namespace mudock {
@@ -12,5 +12,5 @@ namespace mudock {
   }
 
   template<>
-  void adt_score_kernel<queue_cpp>::operator()();
+  void x_score_kernel<queue_cpp>::operator()();
 } // namespace mudock
