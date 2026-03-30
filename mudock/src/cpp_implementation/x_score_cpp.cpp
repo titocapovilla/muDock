@@ -207,7 +207,7 @@ namespace mudock {
 
   template<>
   void x_score_kernel<queue_cpp>::operator()() {
-    q->invoke_kernel<this->x_region_name>(calc_energy,
+    q->invoke_kernel<x_score_kernel::x_region_name>(calc_energy,
                                             batch_atoms,
                                             batch_ligands,
                                             scores_per_ligand,
