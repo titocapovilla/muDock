@@ -19,7 +19,7 @@ namespace mudock {
 
   template<typename queue_type>
   // requires std::derived_from<queue_type, queue>
-  int get_adt_score_batch(const int, std::shared_ptr<queue_type>, const size_t);
+  int get_x_score_batch(const int, std::shared_ptr<queue_type>, const size_t);
 
 #ifndef __CUDACC__
   // TODO check that the object type and the kernel impl are the same

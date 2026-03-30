@@ -6,7 +6,7 @@
 
 namespace mudock {
   template<>
-  inline int get_adt_score_batch<queue_cpp>(const int, std::shared_ptr<queue_cpp>, const size_t) {
+  inline int get_x_score_batch<queue_cpp>(const int, std::shared_ptr<queue_cpp>, const size_t) {
     // put 1 stabilizes variance between MPI runs
     return 1;
   }
