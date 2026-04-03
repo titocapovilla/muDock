@@ -77,6 +77,8 @@ namespace mudock {
     ~x_score_kernel() = default;
 
   private:
+
+  // TODO preserve only useful parameters
     const int scores_per_ligand;
     const int batch_ligands;
     const int batch_atoms;
