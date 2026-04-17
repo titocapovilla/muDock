@@ -183,30 +183,14 @@ namespace mudock {
   };
 
   enum class hb_character : int {
-    DONOR, ACCEPTOR, BOTH, NONE
+    NONE        = 0, // 'N'
+    DONOR       = 1, // 'D'
+    ACCEPTOR    = 2, // 'A'
+    BOTH        = 3, // 'DA'
+    POLAR_H     = 4, // 'DH'
+    POLAR       = 5, // 'P'
+    HYDROPHOBIC = 6, // 'H'
+    METAL       = 7  // 'M'
   };
 
-  // this is knowledge that we have about all the elements (that we need at least)
-  struct autodock_ff_description {
-    autodock_ff value;
-    std::string_view name;
-    fp_type Rii    = 0;
-    fp_type epsii  = 0;
-    fp_type vol    = 0;
-    fp_type solpar = 0;
-    fp_type Rij_hb = 0;
-    // TODO autogrid/build/read_parameter_library.cpp : 161 they should be multiplied by a coefficient
-    fp_type epsij_hb = 0;
-    int hbond        = 0;
-  };
-  static constexpr auto num_autodock_ff() { return 131; }
-  extern const std::array<autodock_ff_description, num_autodock_ff()> AUTODOCK_FF_DICTIONARY;
-
-  // utility functions to work with them
-  inline const autodock_ff_description& get_description(const autodock_ff a) {
-    assert(AUTODOCK_FF_DICTIONARY[static_cast<int>(a)].value == a);
-    return AUTODOCK_FF_DICTIONARY[static_cast<int>(a)];
-  }
-
-  autodock_ff parse_autodock_type(const std::string_view symbol);
 } // namespace mudock
