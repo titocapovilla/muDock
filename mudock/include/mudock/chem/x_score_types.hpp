@@ -193,4 +193,15 @@ namespace mudock {
     METAL       = 7  // 'M'
   };
 
+    struct x_score_ff_description {
+    //instanciate variables to fill with
+    // # The 1st column: atom type number 
+    // # The 2nd column: X-Tool atom type 
+    // # The 3rd column: atomic weight
+    // # The 4th column: X-Tool van der Waals radius
+    // # The 5th column: X-Tool van der Waals potential
+    // # The 6th column: X-Tool atomic partial charge
+    // # The 7th column: hydrogen bonding character
+  };
+
 } // namespace mudock

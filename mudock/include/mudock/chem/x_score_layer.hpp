@@ -17,11 +17,17 @@ namespace mudock {
     template<typename T>
     using bonds_array_type = container_aliases::template bonds_size<T>;
 
-    x_score_layer(molecule<container_aliases>& _molecule,
-                   std::function<void(molecule<container_aliases>&)> f = {})
-        : molecule_layer<container_aliases>(_molecule) {
+    //fill with necessary atom types from x_score
+    // atoms_array_type<xscore_ff>   atom_xtool_type; // XTOOL enum
+    // atoms_array_type<xscore_logp> atom_xlogp_type; // XLOGP enum
+    // atoms_array_type<fp_type>     xscore_vdw_r0;   // 8-4 Potential R0
+    // atoms_array_type<fp_type>     xscore_vdw_eps;  // 8-4 Potential Eps
 
-    };
+    xscore_layer(molecule<container_aliases>& mol) 
+        : molecule_layer<container_aliases>(mol) {
+        // Trigger the preparation phase
+        prepare(); 
+    }
   };
 
   using x_score_dynamic_layer = x_score_layer<dynamic_containers>;
