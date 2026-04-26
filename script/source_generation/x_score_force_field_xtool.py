@@ -1,6 +1,22 @@
 import json
-import sys
 import pathlib
+import re
+
+
+LINE_RE = re.compile(
+    r"^\s*(?P<index>\d+)\s+"
+    r"(?P<atom_type>\S+)\s+"
+    r"(?P<atomic_weight>[+-]?\d+(?:\.\d+)?)\s+"
+    r"(?P<vdw_radius>[+-]?\d+(?:\.\d+)?)\s+"
+    r"(?P<vdw_potential>[+-]?\d+(?:\.\d+)?)\s+"
+    r"(?P<par_charge>[+-]?\d+(?:\.\d+)?)\s+"
+    r"(?P<hbond>\S+)"
+    r"(?:\s+.*)?$"
+)
+
+
+def to_enum_name(atom_type: str) -> str:
+    return atom_type.replace(".", "_").replace("+", "plus")
 
 # define path to stuff
 script_dirpath = pathlib.Path(__file__).parent
@@ -9,18 +25,20 @@ with open(dat_filepath, "r") as f:
     lines = f.readlines()
     data = []
     for line in lines:
-        parts = line.split()
-        # if len(parts) < 7:
-        #     continue
+        match = LINE_RE.match(line)
+        if not match:
+            continue
+
+        atom_type = match.group("atom_type")
         data.append(
             {
-                "value": parts[1],
-                "name": parts[1],
-                "atomic_weight": parts[2],
-                "vdw_radius": parts[3],
-                "vdw_potential": parts[4],
-                "par_charge": parts[5],
-                "hbond": parts[6],
+                "value": to_enum_name(atom_type),
+                "name": to_enum_name(atom_type),
+                "atomic_weight": match.group("atomic_weight"),
+                "vdw_radius": match.group("vdw_radius"),
+                "vdw_potential": match.group("vdw_potential"),
+                "par_charge": match.group("par_charge"),
+                "hbond": match.group("hbond"),
             }
         )
 
