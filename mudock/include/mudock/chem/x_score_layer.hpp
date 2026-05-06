@@ -14,21 +14,31 @@ namespace mudock {
   struct x_score_layer: public molecule_layer<container_aliases> {
     template<typename T>
     using atoms_array_type = container_aliases::template atoms_size<T>;
-    template<typename T>
-    using bonds_array_type = container_aliases::template bonds_size<T>;
+    // template<typename T>
+    // using bonds_array_type = container_aliases::template bonds_size<T>;
 
-    //fill with necessary atom types from x_score
-    // atoms_array_type<xscore_ff>   atom_xtool_type; // XTOOL enum
-    // atoms_array_type<xscore_logp> atom_xlogp_type; // XLOGP enum
-    // atoms_array_type<fp_type>     xscore_vdw_r0;   // 8-4 Potential R0
-    // atoms_array_type<fp_type>     xscore_vdw_eps;  // 8-4 Potential Eps
+    // data for the atoms
+    atoms_array_type<xtool_ff>   atom_xtool_type;
+    atoms_array_type<xlogp_ff>   atom_xlogp_type;
+    atoms_array_type<fp_type>    vdw_radius;
+    atoms_array_type<fp_type>    vdw_potential;
+    atoms_array_type<fp_type>    hydro_scale;
+    atoms_array_type<int>        hbond_type;
 
-    xscore_layer(molecule<container_aliases>& mol) 
-        : molecule_layer<container_aliases>(mol) {
+
+    xscore_layer(molecule<container_aliases>& mol) : molecule_layer<container_aliases>(mol) {
         // Trigger the preparation phase
+        //resizing part
+
+
         prepare(); 
     }
   };
+
+  void prepare() {
+    
+    //todo
+  }
 
   using x_score_dynamic_layer = x_score_layer<dynamic_containers>;
   using x_score_static_layer  = x_score_layer<static_containers>;
