@@ -66,7 +66,7 @@ def parse_residue_definition(file_path: pathlib.Path) -> dict:
                         "x_tool_atom_type": to_enum_name(atom_match.group("x_tool_atom_type")),
                         "vdw_radius": atom_match.group("vdw_radius"),
                         "vdw_potential": atom_match.group("vdw_potential"),
-                        "partial_charge": atom_match.group("partial_charge"),
+                        "par_charge": atom_match.group("partial_charge"),
                         "hbond": to_enum_name(atom_match.group("hbond")),
                         "hydrophobic_scale": atom_match.group("hydrophobic_scale"),
                         "sas_parameter": atom_match.group("sas_parameter"),
