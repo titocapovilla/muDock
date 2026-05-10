@@ -116,10 +116,56 @@ namespace mudock {
 
     Un = 50, // Un
 
-  };
+    // non xtool types added for type mismatch in residue
 
-  // Knowledge about the X-TOOL force field parameters
-  struct xtool_ff_description {
+    //xlogp
+    N_am = 51, // N_am
+
+    S_o2 = 52, // S_o2
+
+    //ions
+    Li = 53, // Li
+
+    Na = 54, // Na
+
+    K = 55, // K
+
+    Mg = 56, // Mg
+
+    Ca = 57, // Ca
+
+    Mn = 58, // Mn
+
+    Fe = 59, // Fe
+
+    Co = 60, // Co
+
+    Ni = 61, // Ni
+
+    Cu = 62, // Cu
+
+    Zn = 63, // Zn
+
+    Cd = 64, // Cd
+
+    Hg = 65, // Hg
+
+    Al = 66, // Al
+
+    U = 67, // U
+
+    Fminus = 68, // Fminus
+
+    Clminus = 69, // Clminus
+
+    Brminus = 70, // Brminus
+
+    Iminus = 71, // Iminus
+
+    };
+
+    // Knowledge about the X-TOOL force field parameters
+    struct xtool_ff_description {
     xtool_ff value;
     std::string_view name;
     fp_type atomic_weight;
@@ -127,9 +173,10 @@ namespace mudock {
     fp_type vdw_potential;
     fp_type par_charge;
     std::string_view hbond;
-  };
-  static constexpr auto num_xtool_ff() { return 51; }
-  extern const std::array<xtool_ff_description, num_xtool_ff()> XTOOL_FF_DICTIONARY;
+    };
+    static constexpr auto num_xtool_ff() { return 72; }
+    extern const std::array<xtool_ff_description, num_xtool_ff()> XTOOL_FF_DICTIONARY;
+
 
   // Utility function to get the description
   inline const xtool_ff_description& get_description(const xtool_ff a) {

@@ -5616,9 +5616,8 @@ namespace mudock {
 
   };
 
-  static const xtool_residue_bond_description TER_bonds[] = {
-
-  };
+  // declared as span because no bonds are present in the .dat file
+  static const std::span<const xtool_residue_bond_description> TER_bonds;
 
   static const xtool_residue_atom_description HOH_atoms[] = {
 
@@ -6115,10 +6114,9 @@ namespace mudock {
     }
 
   };
-
-  static const xtool_residue_bond_description HET_bonds[] = {
-
-  };
+  
+  // declared as span because no bonds are present in the .dat file
+  static const std::span<const xtool_residue_bond_description> HET_bonds;
 
 
   // --- Main Dictionary ---

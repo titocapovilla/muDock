@@ -16,7 +16,7 @@ namespace mudock {
     else
       throw std::runtime_error("Missing xtool type");
   }
-  const std::array<xtool_ff_description, 51> XTOOL_FF_DICTIONARY = {{
+  const std::array<xtool_ff_description, 72> XTOOL_FF_DICTIONARY = {{
     {
       xtool_ff::C_3,
       "C_3",
@@ -525,6 +525,220 @@ namespace mudock {
       0.000,
       0.000,
       "N"
+    },
+
+    // non xtool types added for type mismatch in residue
+    //xlogp
+    {
+      xtool_ff::N_am,
+      "N_am",
+      14.01,
+      1.750,
+      0.000,
+      0.000,
+      "D"
+    },
+
+    //xlogp
+    {
+      xtool_ff::S_o2,
+      "S_o2",
+      32.07,
+      2.000,
+      0.000,
+      0.000,
+      "P"
+    },
+
+    //ions
+    {
+      xtool_ff::Li,
+      "Li",
+      0.00,
+      1.250,
+      0.000,
+      1.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Na,
+      "Na",
+      0.00,
+      1.250,
+      0.000,
+      1.000,
+      "M"
+    },
+
+    {
+      xtool_ff::K,
+      "K",
+      0.00,
+      1.250,
+      0.000,
+      1.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Mg,
+      "Mg",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Ca,
+      "Ca",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Mn,
+      "Mn",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Fe,
+      "Fe",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Co,
+      "Co",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Ni,
+      "Ni",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Cu,
+      "Cu",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Zn,
+      "Zn",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Cd,
+      "Cd",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Hg,
+      "Hg",
+      0.00,
+      1.250,
+      0.000,
+      2.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Al,
+      "Al",
+      0.00,
+      1.250,
+      0.000,
+      3.000,
+      "M"
+    },
+
+    {
+      xtool_ff::U,
+      "U",
+      0.00,
+      1.250,
+      0.000,
+      3.000,
+      "M"
+    },
+
+    {
+      xtool_ff::Fminus,
+      "Fminus",
+      19.00,
+      1.500,
+      0.000,
+      -1.000,
+      "P"
+    },
+
+    {
+      xtool_ff::Clminus,
+      "Clminus",
+      35.45,
+      1.750,
+      0.000,
+      -1.000,
+      "P"
+    },
+
+    {
+      xtool_ff::Brminus,
+      "Brminus",
+      79.90,
+      1.900,
+      0.000,
+      -1.000,
+      "P"
+    },
+
+    {
+      xtool_ff::Iminus,
+      "Iminus",
+      126.90,
+      2.050,
+      0.000,
+      -1.000,
+      "P"
     }
 
   }};
