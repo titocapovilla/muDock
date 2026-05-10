@@ -25,7 +25,17 @@ BOND_RE = re.compile(
 
 
 def to_enum_name(text: str) -> str:
-    return re.sub(r"\.", "_", text)
+    name = text
+    name = re.sub(r"\+", "_plus_", name)
+    name = re.sub(r"-", "_minus_", name)
+    name = re.sub(r"=", "_eq_", name)
+    name = re.sub(r">", "_gt_", name)
+    name = re.sub(r"<", "_lt_", name)
+    name = re.sub(r"\.", "_", name)
+    name = re.sub(r"[()]+", "_", name)
+    name = re.sub(r"[^A-Za-z0-9_]+", "_", name)
+    name = re.sub(r"_+", "_", name)
+    return name.strip("_")
 
 
 def parse_residue_definition(file_path: pathlib.Path) -> dict:
