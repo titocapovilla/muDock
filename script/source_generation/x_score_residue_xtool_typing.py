@@ -26,11 +26,11 @@ BOND_RE = re.compile(
 
 def to_enum_name(text: str) -> str:
     name = text
-    name = re.sub(r"\+", "_plus_", name)
-    name = re.sub(r"-", "_minus_", name)
-    name = re.sub(r"=", "_eq_", name)
-    name = re.sub(r">", "_gt_", name)
-    name = re.sub(r"<", "_lt_", name)
+    name = re.sub(r"\+", "plus", name)
+    name = re.sub(r"-", "minus", name)
+    name = re.sub(r"=", "eq", name)
+    name = re.sub(r">", "gt", name)
+    name = re.sub(r"<", "lt", name)
     name = re.sub(r"\.", "_", name)
     name = re.sub(r"[()]+", "_", name)
     name = re.sub(r"[^A-Za-z0-9_]+", "_", name)

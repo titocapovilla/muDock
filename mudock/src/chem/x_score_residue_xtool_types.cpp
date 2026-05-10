@@ -5851,7 +5851,7 @@ namespace mudock {
     {
       "LI",
       xtool_ff::Li,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       1.000f,
@@ -5865,7 +5865,7 @@ namespace mudock {
     {
       "NA",
       xtool_ff::Na,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       1.000f,
@@ -5879,7 +5879,7 @@ namespace mudock {
     {
       "K",
       xtool_ff::K,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       1.000f,
@@ -5893,7 +5893,7 @@ namespace mudock {
     {
       "CA",
       xtool_ff::Ca,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -5907,7 +5907,7 @@ namespace mudock {
     {
       "MG",
       xtool_ff::Mg,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -5921,7 +5921,7 @@ namespace mudock {
     {
       "AL",
       xtool_ff::Al,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       3.000f,
@@ -5935,7 +5935,7 @@ namespace mudock {
     {
       "MN",
       xtool_ff::Mn,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -5949,7 +5949,7 @@ namespace mudock {
     {
       "FE",
       xtool_ff::Fe,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -5963,7 +5963,7 @@ namespace mudock {
     {
       "NI",
       xtool_ff::Ni,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -5977,7 +5977,7 @@ namespace mudock {
     {
       "CD",
       xtool_ff::Cd,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -5991,7 +5991,7 @@ namespace mudock {
     {
       "CO",
       xtool_ff::Co,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -6005,7 +6005,7 @@ namespace mudock {
     {
       "CU",
       xtool_ff::Cu,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -6019,7 +6019,7 @@ namespace mudock {
     {
       "ZN",
       xtool_ff::Zn,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -6033,7 +6033,7 @@ namespace mudock {
     {
       "HG",
       xtool_ff::Hg,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       2.000f,
@@ -6047,7 +6047,7 @@ namespace mudock {
     {
       "U",
       xtool_ff::U,
-      xtool_ff::M_plus,
+      xtool_ff::Mplus,
       1.250f,
       0.000f,
       3.000f,
@@ -6061,7 +6061,7 @@ namespace mudock {
     {
       "F",
       xtool_ff::F,
-      xtool_ff::F_minus,
+      xtool_ff::Fminus,
       1.500f,
       0.000f,
       -1.000f,
@@ -6075,7 +6075,7 @@ namespace mudock {
     {
       "CL",
       xtool_ff::Cl,
-      xtool_ff::Cl_minus,
+      xtool_ff::Clminus,
       1.750f,
       0.000f,
       -1.000f,
@@ -6089,7 +6089,7 @@ namespace mudock {
     {
       "BR",
       xtool_ff::Br,
-      xtool_ff::Br_minus,
+      xtool_ff::Brminus,
       1.900f,
       0.000f,
       -1.000f,
@@ -6103,7 +6103,7 @@ namespace mudock {
     {
       "I",
       xtool_ff::I,
-      xtool_ff::I_minus,
+      xtool_ff::Iminus,
       2.050f,
       0.000f,
       -1.000f,
