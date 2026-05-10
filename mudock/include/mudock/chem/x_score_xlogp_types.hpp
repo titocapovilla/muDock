@@ -247,8 +247,8 @@ namespace mudock {
     std::string_view hbond;
     fp_type hydrophobic_scale;
   };
-  static constexpr auto num_xlogp_ff() { return 131; }
-  extern const std::array<xlogp_ff_description, 112> XLOGP_FF_DICTIONARY;
+  static constexpr auto num_xlogp_ff() { return 112; }
+  extern const std::array<xlogp_ff_description, num_xlogp_ff()> XLOGP_FF_DICTIONARY;
 
   // Utility function to get the description
   inline const xlogp_ff_description& get_description(const xlogp_ff a) {

@@ -129,7 +129,7 @@ namespace mudock {
     std::string_view hbond;
   };
   static constexpr auto num_xtool_ff() { return 51; }
-  extern const std::array<xtool_ff_description, 51> XTOOL_FF_DICTIONARY;
+  extern const std::array<xtool_ff_description, num_xtool_ff()> XTOOL_FF_DICTIONARY;
 
   // Utility function to get the description
   inline const xtool_ff_description& get_description(const xtool_ff a) {
