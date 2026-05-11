@@ -120,7 +120,7 @@ namespace mudock {
   inline const xtool_residue_description* get_residue_by_name(const std::string_view name) {
     if (auto it = XTOOL_RESIDUE_LOOKUP.find(name); it != XTOOL_RESIDUE_LOOKUP.end()) {
       return &get_description(it->second);
-    }
+    }   
     return nullptr;
   }
 

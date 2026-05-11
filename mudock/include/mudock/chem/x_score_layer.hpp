@@ -1,9 +1,9 @@
 #pragma once
 
 #include <mudock/chem/assign_autodock_types.hpp>
-#include <mudock/chem/autodock_babel_types.hpp>
-#include <mudock/chem/autodock_grid_types.hpp>
-#include <mudock/chem/autodock_parameters.hpp>
+#include <mudock/chem/x_score_xtool_types.hpp>
+#include <mudock/chem/x_score_xlogp_types.hpp>
+#include <mudock/chem/x_score_residue_xtool_types.hpp>
 #include <mudock/chem/molecule_layer.hpp>
 #include <mudock/grid/mdspan.hpp>
 #include <mudock/type_alias.hpp>
@@ -18,12 +18,7 @@ namespace mudock {
     // using bonds_array_type = container_aliases::template bonds_size<T>;
 
     // data for the atoms
-    atoms_array_type<xtool_ff>   atom_xtool_type;
-    atoms_array_type<xlogp_ff>   atom_xlogp_type;
-    atoms_array_type<fp_type>    vdw_radius;
-    atoms_array_type<fp_type>    vdw_potential;
-    atoms_array_type<fp_type>    hydro_scale;
-    atoms_array_type<int>        hbond_type;
+
 
 
     xscore_layer(molecule<container_aliases>& mol) : molecule_layer<container_aliases>(mol) {
@@ -33,12 +28,27 @@ namespace mudock {
 
         prepare(); 
     }
-  };
 
-  void prepare() {
+  private:
+    // xtool type array
+    atoms_array_type<xtool_ff>   atom_xtool_type;  
+    // todo add xlogp type
+
+    // xtool radius
+    atoms_array_type<fp_type>    vdw_radius; 
+    //todo add other xlogp and xtool parameters as needed
+
+    
+
+    void prepare() {
     
     //todo
   }
+  
+  
+  
+  
+  };
 
   using x_score_dynamic_layer = x_score_layer<dynamic_containers>;
   using x_score_static_layer  = x_score_layer<static_containers>;
