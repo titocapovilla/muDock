@@ -21,12 +21,16 @@ namespace mudock {
 
 
 
-    xscore_layer(molecule<container_aliases>& mol) : molecule_layer<container_aliases>(mol) {
+    x_score_layer(molecule<container_aliases>& _molecule,
+                  std::function<void(molecule<container_aliases>&)> f = {})
+       : molecule_layer<container_aliases>(_molecule) {
         // Trigger the preparation phase
         //resizing part
+        const auto num_atoms = _molecule.num_atoms();
+        mudock::resize(vdw_radius, n_atoms);
+        
 
-
-        prepare(); 
+        prepare(f); 
     }
 
   private:
@@ -40,10 +44,12 @@ namespace mudock {
 
     
 
-    void prepare() {
-    
-    //todo
-  }
+  void prepare(std::function<void(molecule<container_aliases>&)> f = {}) {
+      //assign_x_score_xtool_types((*this)(), f);
+      //assign_x_score_xlogp_types((*this)(), f);
+
+
+    }
   
   
   
