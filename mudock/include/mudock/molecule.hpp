@@ -45,6 +45,8 @@ namespace mudock {
     int bonds_size = int{0};
 
     atoms_array_type<autodock_ff> atom_autodock_type;
+
+    // todo: for the 3 structures below getters, setters and resize are to be implemented
     atoms_array_type<xtool_ff> atom_x_score_xtool_type;
     atoms_array_type<xlogp_ff> atom_x_score_xlogp_type;
     // todo: probably to be changed because it's not per-atom based
