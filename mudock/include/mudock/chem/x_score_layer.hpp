@@ -28,7 +28,15 @@ namespace mudock {
         //resizing part
         const auto num_atoms = _molecule.num_atoms();
         mudock::resize(vdw_radius, n_atoms);
+        //resize others
         
+        
+        // 2. Decide which engine to use
+        // if (mol.properties.get("type") == "PROTEIN") {
+        //     prepare_protein(); // Uses the Residue Dictionary
+        // } else {
+        //     prepare_ligand();  // Uses the molecule.cpp logic
+        // }
 
         prepare(f); 
     }
@@ -43,6 +51,9 @@ namespace mudock {
     //todo add other xlogp and xtool parameters as needed
 
     
+  // Atom Typing: For every atom in the molecule, determine its xtool_ff and xlogp_ff identity.
+  // Parameter Extraction: Look up that identity in your XTOOL_FF_DICTIONARY and XLOGP_FF_DICTIONARY.
+  // Filling: Copy the radius, potential, charge, and scales into the layer's contiguous arrays.
 
   void prepare(std::function<void(molecule<container_aliases>&)> f = {}) {
       //assign_x_score_xtool_types((*this)(), f);
