@@ -48,7 +48,7 @@ namespace mudock {
     std::span<const xtool_residue_atom_description> atoms;
     std::span<const xtool_residue_bond_description> bonds;
   };
-  
+
   extern const std::array<xtool_residue_description, num_residues()> XTOOL_RESIDUE_DICTIONARY;
   extern const std::unordered_map<std::string_view, residue> XTOOL_RESIDUE_LOOKUP;
 
@@ -60,6 +60,7 @@ namespace mudock {
     return XTOOL_RESIDUE_DICTIONARY[static_cast<int>(r)];
   }
 
+  // todo: function is probaby unnecessary once the residue is initialized as enum in the protein.
   // Utility function to get the residue by name (e.g., "ALA")
   inline const xtool_residue_description* get_residue_by_name(const std::string_view name) {
     if (auto it = XTOOL_RESIDUE_LOOKUP.find(name); it != XTOOL_RESIDUE_LOOKUP.end()) {

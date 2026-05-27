@@ -108,7 +108,7 @@ namespace mudock {
     [[nodiscard]] inline auto get_is_aromatic() const { return make_span(atom_is_aromatic, atoms_size); }
     [[nodiscard]] inline auto get_charge() const { return make_span(atom_charge, atoms_size); }
     [[nodiscard]] inline auto get_num_hbond() const { return make_span(atom_num_hbond, atoms_size); }
-    [[nodiscard]] inline auto get_residue_type() const { return make_span(atom_residue_type, atoms_size); }
+    [[nodiscard]] inline auto get_atom_residue_type() const { return make_span(atom_residue_type, atoms_size); }
 
     // utility functions to get the span of the whole molecule (read only)
     [[nodiscard]] inline auto get_elements() const { return make_span(atom_elements, atoms_size); }
@@ -138,6 +138,7 @@ namespace mudock {
     [[nodiscard]] inline auto* z() { return z_coordinates.data(); }
     [[nodiscard]] inline auto* charge() { return atom_charge.data(); }
     [[nodiscard]] inline auto* num_hbond() { return atom_num_hbond.data(); }
+    [[nodiscard]] inline auto* residue_type() { return atom_residue_type.data(); }
 
     // utility functions to get the ref to an atom element (read only)
     [[nodiscard]] inline const auto& autodock_type(const int index) const {

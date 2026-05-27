@@ -101,9 +101,9 @@ namespace mudock {
       if constexpr (std::same_as<std::remove_cvref_t<molecule_type>, dynamic_molecule>) {
        if (OpenBabel::OBResidue* ob_res = atom->GetResidue()) {
           std::string res_name = ob_res->GetName();
-          dest.atom_residue_type(mudock_atom_index) = parse_residue_name(res_name);
+          dest.residue_type(mudock_atom_index) = parse_residue_name(res_name);
        } else {
-          dest.atom_residue_type(mudock_atom_index) = residue::UNKNOWN;
+          dest.residue_type(mudock_atom_index) = residue::UNKNOWN;
        }
       }
 
