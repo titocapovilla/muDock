@@ -6,3 +6,5 @@ build*/
 *.a
 .codex
 docs/
+.serena
+.serena/**
