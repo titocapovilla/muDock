@@ -47,7 +47,7 @@ namespace mudock {
     atoms_array_type<autodock_ff> atom_autodock_type;
 
     // todo: parse via openBabel from pdb atom
-    atoms_array_type<residue> residue_type;         // ADD
+    atoms_array_type<residue> atom_residue_type;
 
 
     atoms_array_type<int> atom_is_aromatic;
@@ -99,6 +99,7 @@ namespace mudock {
 
     // utility functions to get the span of the whole molecule (read + write)
     [[nodiscard]] inline auto get_autodock_type() { return make_span(atom_autodock_type, atoms_size); }
+    [[nodiscard]] inline auto get_residue_type() { return make_span(atom_residue_type, atoms_size); }
     [[nodiscard]] inline auto get_elements() { return make_span(atom_elements, atoms_size); }
     [[nodiscard]] inline auto get_x() { return make_span(x_coordinates, atoms_size); }
     [[nodiscard]] inline auto get_y() { return make_span(y_coordinates, atoms_size); }
@@ -107,6 +108,7 @@ namespace mudock {
     [[nodiscard]] inline auto get_is_aromatic() const { return make_span(atom_is_aromatic, atoms_size); }
     [[nodiscard]] inline auto get_charge() const { return make_span(atom_charge, atoms_size); }
     [[nodiscard]] inline auto get_num_hbond() const { return make_span(atom_num_hbond, atoms_size); }
+    [[nodiscard]] inline auto get_residue_type() const { return make_span(atom_residue_type, atoms_size); }
 
     // utility functions to get the span of the whole molecule (read only)
     [[nodiscard]] inline auto get_elements() const { return make_span(atom_elements, atoms_size); }
@@ -124,6 +126,8 @@ namespace mudock {
     [[nodiscard]] inline auto& z(const int index) { return z_coordinates[index]; }
     [[nodiscard]] inline auto& charge(const int index) { return atom_charge[index]; }
     [[nodiscard]] inline auto& num_hbond(const int index) { return atom_num_hbond[index]; }
+    [[nodiscard]] inline auto& residue_type(const int index) { return atom_residue_type[index]; }
+
 
     // utility functions to get the ref to an atom element (read + write)
     [[nodiscard]] inline auto* autodock_type() { return atom_autodock_type.data(); }
@@ -135,7 +139,7 @@ namespace mudock {
     [[nodiscard]] inline auto* charge() { return atom_charge.data(); }
     [[nodiscard]] inline auto* num_hbond() { return atom_num_hbond.data(); }
 
-    // utility functions to get the span of the whole molecule (read only)
+    // utility functions to get the ref to an atom element (read only)
     [[nodiscard]] inline const auto& autodock_type(const int index) const {
       return atom_autodock_type[index];
     }
@@ -146,6 +150,7 @@ namespace mudock {
     [[nodiscard]] inline const auto& z(const int index) const { return z_coordinates[index]; }
     [[nodiscard]] inline const auto& charge(const int index) const { return atom_charge[index]; }
     [[nodiscard]] inline const auto& num_hbond(const int index) const { return atom_num_hbond[index]; }
+    [[nodiscard]] inline const auto& residue_type(const int index) const { return atom_residue_type[index]; }
   };
 
   //===------------------------------------------------------------------------------------------------------

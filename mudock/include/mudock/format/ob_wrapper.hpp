@@ -2,6 +2,7 @@
 
 #include <mudock/chem/autodock_parameters.hpp>
 #include <mudock/chem/autodock_types.hpp>
+#include <mudock/chem/residue.hpp>
 #include <mudock/molecule.hpp>
 #include <openbabel/atom.h>
 #include <openbabel/bond.h>
@@ -11,6 +12,7 @@
 #include <openbabel/mol.h>
 #include <openbabel/obconversion.h>
 #include <openbabel/oberror.h>
+#include <openbabel/residue.h>
 
 namespace mudock {
 
@@ -94,6 +96,17 @@ namespace mudock {
       dest.charge(mudock_atom_index)      = atom->GetPartialCharge();
       dest.is_aromatic(mudock_atom_index) = atom->IsAromatic();
       // }
+
+			// parsing residue for proteins
+      if constexpr (std::same_as<std::remove_cvref_t<molecule_type>, dynamic_molecule>) {
+       if (OpenBabel::OBResidue* ob_res = atom->GetResidue()) {
+          std::string res_name = ob_res->GetName();
+          dest.atom_residue_type(mudock_atom_index) = parse_residue_name(res_name);
+       } else {
+          dest.atom_residue_type(mudock_atom_index) = residue::UNKNOWN;
+       }
+      }
+
       index_translator.emplace(atom_id, mudock_atom_index);
       ++mudock_atom_index;
       max_atom_index = std::max(max_atom_index, atom_id);

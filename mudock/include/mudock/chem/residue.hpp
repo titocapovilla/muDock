@@ -72,4 +72,36 @@ namespace mudock {
 
   static constexpr auto num_xtool_residues() { return 27; }
 
+  //string-to-enum translation
+  constexpr residue parse_residue_name(std::string_view name) {
+    if (name == "ACE") return residue::ACE;
+    if (name == "ALA") return residue::ALA;
+    if (name == "ARG") return residue::ARG;
+    if (name == "ASN") return residue::ASN;
+    if (name == "ASP") return residue::ASP;
+    if (name == "CYS") return residue::CYS;
+    if (name == "GLN") return residue::GLN;
+    if (name == "GLU") return residue::GLU;
+    if (name == "GLY") return residue::GLY;
+    if (name == "HIS") return residue::HIS;
+    if (name == "ILE") return residue::ILE;
+    if (name == "LEU") return residue::LEU;
+    if (name == "LYS") return residue::LYS;
+    if (name == "MET") return residue::MET;
+    if (name == "NME") return residue::NME;
+    if (name == "PHE") return residue::PHE;
+    if (name == "PRO") return residue::PRO;
+    if (name == "SER") return residue::SER;
+    if (name == "THR") return residue::THR;
+    if (name == "TRP") return residue::TRP;
+    if (name == "TYR") return residue::TYR;
+    if (name == "VAL") return residue::VAL;
+    if (name == "TER") return residue::TER;
+    if (name == "HOH") return residue::HOH;
+    if (name == "SO4") return residue::SO4;
+    if (name == "PO4") return residue::PO4;
+    if (name == "HET") return residue::HET;
+    return residue::UNKNOWN;
+  }
+
 } // namespace mudock

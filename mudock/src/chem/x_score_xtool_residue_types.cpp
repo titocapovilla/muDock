@@ -6369,6 +6369,7 @@ namespace mudock {
 
   }};
 
+  // todo: this map should probably be moved to a residue.cpp file. python script should be modified accordingly
   // --- Lookup Map ---
   const std::unordered_map<std::string_view, residue> XTOOL_RESIDUE_LOOKUP = {
 
