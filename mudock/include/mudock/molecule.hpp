@@ -183,6 +183,7 @@ namespace mudock {
     mudock::resize(z_coordinates, n_atoms);
     mudock::resize(bond_descriptions, n_bonds);
     mudock::resize(atom_autodock_type, n_atoms);
+    mudock::resize(atom_residue_type, n_atoms);
     mudock::resize(atom_is_aromatic, n_atoms);
     mudock::resize(atom_charge, n_atoms);
     mudock::resize(atom_num_hbond, n_atoms);
@@ -197,6 +198,7 @@ namespace mudock {
     mudock::remove_atom(x_coordinates, index);
     mudock::remove_atom(y_coordinates, index);
     mudock::remove_atom(z_coordinates, index);
+    mudock::remove_atom(atom_residue_type, index);
     mudock::resize(bond_descriptions, index);
     mudock::resize(atom_autodock_type, index);
     mudock::resize(atom_is_aromatic, index);
