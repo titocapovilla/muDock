@@ -4,5 +4,5 @@ build*/
 .gdb_history
 *.o
 *.a
-.serena
-.serena/**
+.codex
+docs/

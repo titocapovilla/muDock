@@ -22,20 +22,20 @@ namespace mudock {
     auto &scratch_z = (*scratch).template get<bdt_z>();
 
     if (!scratch_x.is_valid()) {
-      const auto total = static_cast<std::size_t>(tot_atoms_in_batch) *
-                         static_cast<std::size_t>(scores_per_ligand);
+      const auto total =
+          static_cast<std::size_t>(tot_atoms_in_batch) * static_cast<std::size_t>(scores_per_ligand);
       scratch_x.alloc(total);
       scratch_y.alloc(total);
       scratch_z.alloc(total);
       for (int ligand_index{0}; ligand_index < batch_ligands; ++ligand_index) {
         auto &ligand = *batch.molecules[ligand_index];
 
-        const int stride_atoms = ligand_index * batch_atoms;
-        const int num_atoms    = ligand.num_atoms();
+        const int num_atoms = ligand.num_atoms();
 
         const auto x = ligand.x(), y = ligand.y(), z = ligand.z();
         for (int score_index = 0; score_index < scores_per_ligand; ++score_index) {
-          const int score_offset = score_index * tot_atoms_in_batch + stride_atoms;
+          const int score_offset = ligand_index * batch_atoms * scores_per_ligand +
+                                   score_index * batch_atoms;
           std::memcpy((void *) (scratch_x() + score_offset), x, num_atoms * sizeof(fp_type));
           std::memcpy((void *) (scratch_y() + score_offset), y, num_atoms * sizeof(fp_type));
           std::memcpy((void *) (scratch_z() + score_offset), z, num_atoms * sizeof(fp_type));
@@ -81,7 +81,7 @@ namespace mudock {
       for (int ligand_index{0}; ligand_index < batch_ligands; ++ligand_index) {
         auto &ligand = *batch.molecules[ligand_index];
 
-        num_rotamers_b()[ligand_index] = ligand.num_rotamers();
+        num_rotamers_b()[ligand_index] = static_cast<int>(ligand.num_rotamers());
       }
       num_rotamers_b.copy_host2device();
       return true;
