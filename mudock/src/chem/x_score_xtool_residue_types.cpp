@@ -1,4 +1,6 @@
-#include <mudock/chem/x_score_residue_xtool_types.hpp>
+#include <mudock/chem/x_score_xtool_residue_types.hpp>
+#include <mudock/chem/residue.hpp>
+
 
 namespace mudock {
 
@@ -6120,10 +6122,10 @@ namespace mudock {
 
 
   // --- Main Dictionary ---
-  const std::array<xtool_residue_description, num_xtool_residues()> XTOOL_RESIDUE_DICTIONARY = {{
+  const std::array<xtool_residue_description, num_residues()> XTOOL_RESIDUE_DICTIONARY = {{
 
     {
-      xtool_residue::ACE,
+      residue::ACE,
       "ACE",
       0.00f,
       "Acetyl",
@@ -6132,7 +6134,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::ALA,
+      residue::ALA,
       "ALA",
       0.00f,
       "Alanine",
@@ -6141,7 +6143,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::ARG,
+      residue::ARG,
       "ARG",
       1.00f,
       "Arginine",
@@ -6150,7 +6152,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::ASN,
+      residue::ASN,
       "ASN",
       0.00f,
       "Asparagine",
@@ -6159,7 +6161,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::ASP,
+      residue::ASP,
       "ASP",
       -1.00f,
       "Aspartic acid",
@@ -6168,7 +6170,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::CYS,
+      residue::CYS,
       "CYS",
       0.00f,
       "Cysteine",
@@ -6177,7 +6179,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::GLN,
+      residue::GLN,
       "GLN",
       0.00f,
       "Glutamine",
@@ -6186,7 +6188,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::GLU,
+      residue::GLU,
       "GLU",
       -1.00f,
       "Glutamic acid",
@@ -6195,7 +6197,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::GLY,
+      residue::GLY,
       "GLY",
       0.00f,
       "Glycine",
@@ -6204,7 +6206,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::HIS,
+      residue::HIS,
       "HIS",
       0.00f,
       "Histidine (all variations)",
@@ -6213,7 +6215,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::ILE,
+      residue::ILE,
       "ILE",
       0.00f,
       "Isoleucine",
@@ -6222,7 +6224,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::LEU,
+      residue::LEU,
       "LEU",
       0.00f,
       "Leucine",
@@ -6231,7 +6233,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::LYS,
+      residue::LYS,
       "LYS",
       1.00f,
       "Lysine",
@@ -6240,7 +6242,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::MET,
+      residue::MET,
       "MET",
       0.00f,
       "Methionine",
@@ -6249,7 +6251,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::NME,
+      residue::NME,
       "NME",
       0.00f,
       "N-Methyl",
@@ -6258,7 +6260,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::PHE,
+      residue::PHE,
       "PHE",
       0.00f,
       "Phenylalanine",
@@ -6267,7 +6269,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::PRO,
+      residue::PRO,
       "PRO",
       0.00f,
       "Proline",
@@ -6276,7 +6278,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::SER,
+      residue::SER,
       "SER",
       0.00f,
       "Serine",
@@ -6285,7 +6287,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::THR,
+      residue::THR,
       "THR",
       0.00f,
       "Threonine",
@@ -6294,7 +6296,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::TRP,
+      residue::TRP,
       "TRP",
       0.00f,
       "Tryptophan",
@@ -6303,7 +6305,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::TYR,
+      residue::TYR,
       "TYR",
       0.00f,
       "Tyrosine",
@@ -6312,7 +6314,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::VAL,
+      residue::VAL,
       "VAL",
       0.00f,
       "Valine",
@@ -6321,7 +6323,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::TER,
+      residue::TER,
       "TER",
       0.00f,
       "N- and C-terminal atoms",
@@ -6330,7 +6332,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::HOH,
+      residue::HOH,
       "HOH",
       0.00f,
       "Water",
@@ -6339,7 +6341,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::SO4,
+      residue::SO4,
       "SO4",
       -2.00f,
       "SO4--",
@@ -6348,7 +6350,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::PO4,
+      residue::PO4,
       "PO4",
       -2.00f,
       "PO4--",
@@ -6357,7 +6359,7 @@ namespace mudock {
     },
 
     {
-      xtool_residue::HET,
+      residue::HET,
       "HET",
       0.00f,
       "ions",
@@ -6368,61 +6370,61 @@ namespace mudock {
   }};
 
   // --- Lookup Map ---
-  const std::unordered_map<std::string_view, xtool_residue> XTOOL_RESIDUE_LOOKUP = {
+  const std::unordered_map<std::string_view, residue> XTOOL_RESIDUE_LOOKUP = {
 
-    { "ACE", xtool_residue::ACE },
+    { "ACE", residue::ACE },
 
-    { "ALA", xtool_residue::ALA },
+    { "ALA", residue::ALA },
 
-    { "ARG", xtool_residue::ARG },
+    { "ARG", residue::ARG },
 
-    { "ASN", xtool_residue::ASN },
+    { "ASN", residue::ASN },
 
-    { "ASP", xtool_residue::ASP },
+    { "ASP", residue::ASP },
 
-    { "CYS", xtool_residue::CYS },
+    { "CYS", residue::CYS },
 
-    { "GLN", xtool_residue::GLN },
+    { "GLN", residue::GLN },
 
-    { "GLU", xtool_residue::GLU },
+    { "GLU", residue::GLU },
 
-    { "GLY", xtool_residue::GLY },
+    { "GLY", residue::GLY },
 
-    { "HIS", xtool_residue::HIS },
+    { "HIS", residue::HIS },
 
-    { "ILE", xtool_residue::ILE },
+    { "ILE", residue::ILE },
 
-    { "LEU", xtool_residue::LEU },
+    { "LEU", residue::LEU },
 
-    { "LYS", xtool_residue::LYS },
+    { "LYS", residue::LYS },
 
-    { "MET", xtool_residue::MET },
+    { "MET", residue::MET },
 
-    { "NME", xtool_residue::NME },
+    { "NME", residue::NME },
 
-    { "PHE", xtool_residue::PHE },
+    { "PHE", residue::PHE },
 
-    { "PRO", xtool_residue::PRO },
+    { "PRO", residue::PRO },
 
-    { "SER", xtool_residue::SER },
+    { "SER", residue::SER },
 
-    { "THR", xtool_residue::THR },
+    { "THR", residue::THR },
 
-    { "TRP", xtool_residue::TRP },
+    { "TRP", residue::TRP },
 
-    { "TYR", xtool_residue::TYR },
+    { "TYR", residue::TYR },
 
-    { "VAL", xtool_residue::VAL },
+    { "VAL", residue::VAL },
 
-    { "TER", xtool_residue::TER },
+    { "TER", residue::TER },
 
-    { "HOH", xtool_residue::HOH },
+    { "HOH", residue::HOH },
 
-    { "SO4", xtool_residue::SO4 },
+    { "SO4", residue::SO4 },
 
-    { "PO4", xtool_residue::PO4 },
+    { "PO4", residue::PO4 },
 
-    { "HET", xtool_residue::HET }
+    { "HET", residue::HET }
 
   };
 

@@ -6,7 +6,7 @@
 #include <mudock/chem/autodock_types.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <mudock/chem/x_score_xlogp_types.hpp>
-#include <mudock/chem/x_score_residue_xtool_types.hpp>
+#include <mudock/chem/residue.hpp>
 #include <mudock/chem/elements.hpp>
 #include <mudock/chem/grid_const.hpp>
 #include <mudock/grid/point3D.hpp>
@@ -46,11 +46,8 @@ namespace mudock {
 
     atoms_array_type<autodock_ff> atom_autodock_type;
 
-    // todo: for the 3 structures below getters, setters and resize are to be implemented
-    atoms_array_type<xtool_ff> atom_x_score_xtool_type;
-    atoms_array_type<xlogp_ff> atom_x_score_xlogp_type;
-    // todo: probably to be changed because it's not per-atom based
-    atoms_array_type<xtool_residue> atom_x_score_xtool_residue_type;
+    // todo: parse via openBabel from pdb atom
+    atoms_array_type<residue> residue_type;         // ADD
 
 
     atoms_array_type<int> atom_is_aromatic;

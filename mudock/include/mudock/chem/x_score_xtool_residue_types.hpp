@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 #include <mudock/chem/x_score_xtool_types.hpp>
+#include <mudock/chem/residue.hpp>
 #include <mudock/type_alias.hpp>
 #include <span>
 #include <string_view>
@@ -14,64 +15,7 @@
 
 namespace mudock {
 
-  // List of all known residues for X-TOOL force field
-  enum class xtool_residue : int {
-
-    ACE = 0, // Acetyl
-
-    ALA = 1, // Alanine
-
-    ARG = 2, // Arginine
-
-    ASN = 3, // Asparagine
-
-    ASP = 4, // Aspartic acid
-
-    CYS = 5, // Cysteine
-
-    GLN = 6, // Glutamine
-
-    GLU = 7, // Glutamic acid
-
-    GLY = 8, // Glycine
-
-    HIS = 9, // Histidine (all variations)
-
-    ILE = 10, // Isoleucine
-
-    LEU = 11, // Leucine
-
-    LYS = 12, // Lysine
-
-    MET = 13, // Methionine
-
-    NME = 14, // N-Methyl
-
-    PHE = 15, // Phenylalanine
-
-    PRO = 16, // Proline
-
-    SER = 17, // Serine
-
-    THR = 18, // Threonine
-
-    TRP = 19, // Tryptophan
-
-    TYR = 20, // Tyrosine
-
-    VAL = 21, // Valine
-
-    TER = 22, // N- and C-terminal atoms
-
-    HOH = 23, // Water
-
-    SO4 = 24, // SO4--
-
-    PO4 = 25, // PO4--
-
-    HET = 26, // ions
-
-  };
+  // reference residue enum for types
 
   // Description of an atom within a residue
   struct xtool_residue_atom_description {
@@ -97,21 +41,21 @@ namespace mudock {
 
   // Description of a residue
   struct xtool_residue_description {
-    xtool_residue value;
+    residue value;
     std::string_view name;
     fp_type total_charge;
     std::string_view description;
     std::span<const xtool_residue_atom_description> atoms;
     std::span<const xtool_residue_bond_description> bonds;
   };
-
-  static constexpr auto num_xtool_residues() { return 27; }
-  extern const std::array<xtool_residue_description, num_xtool_residues()> XTOOL_RESIDUE_DICTIONARY;
-  extern const std::unordered_map<std::string_view, xtool_residue> XTOOL_RESIDUE_LOOKUP;
+  
+  extern const std::array<xtool_residue_description, num_residues()> XTOOL_RESIDUE_DICTIONARY;
+  extern const std::unordered_map<std::string_view, residue> XTOOL_RESIDUE_LOOKUP;
 
   // Utility function to get the description by enum
-  inline const xtool_residue_description& get_description(const xtool_residue r) {
-    assert(static_cast<int>(r) >= 0 && static_cast<int>(r) < num_xtool_residues());
+  inline const xtool_residue_description& get_description(const residue r) {
+    // todo: check the assets below
+    assert(static_cast<int>(r) >= 0 && static_cast<int>(r) < num_residues());
     assert(XTOOL_RESIDUE_DICTIONARY[static_cast<int>(r)].value == r);
     return XTOOL_RESIDUE_DICTIONARY[static_cast<int>(r)];
   }

@@ -3,7 +3,8 @@
 #include <mudock/chem/assign_autodock_types.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <mudock/chem/x_score_xlogp_types.hpp>
-#include <mudock/chem/x_score_residue_xtool_types.hpp>
+#include <mudock/chem/residue.hpp>
+#include <mudock/chem/x_score_xtool_residue_types.hpp>
 #include <mudock/chem/molecule_layer.hpp>
 #include <mudock/grid/mdspan.hpp>
 #include <mudock/type_alias.hpp>
@@ -42,6 +43,10 @@ namespace mudock {
     }
 
   private:
+    // todo: for the 3 structures below getters, setters and resize are to be implemented
+    atoms_array_type<xtool_ff> atom_x_score_xtool_type;
+    atoms_array_type<xlogp_ff> atom_x_score_xlogp_type;  
+
     // xtool type array
     atoms_array_type<xtool_ff>   atom_xtool_type;  
     // todo add xlogp type
