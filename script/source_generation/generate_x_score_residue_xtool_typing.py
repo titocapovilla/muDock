@@ -23,6 +23,14 @@ def main() -> None:
 
     # Prepare data for templates
     # data["residue_type"] is already a list of residues with atoms and bonds
+    # Map bond_type 'am' and 'ar' to integer constants
+    for residue in data["residue_type"]:
+        for bond in residue["bonds"]:
+            if bond["bond_type"] == "am":
+                bond["bond_type"] = "3"
+            elif bond["bond_type"] == "ar":
+                bond["bond_type"] = "4"
+
     context = {
         "residue_type": data["residue_type"],
         "num_residues": len(data["residue_type"])

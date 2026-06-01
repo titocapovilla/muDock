@@ -1,16 +1,21 @@
-#pragma once
+ #pragma once
 
-#include <functional>
-#include <mudock/molecule.hpp>
+ #include <functional>
+ #include <mudock/chem/x_score_layer.hpp>
 
-namespace mudock {
+ namespace mudock {
 
-  template<typename molecule_type>
-    requires is_molecule<molecule_type>
-  void assign_x_score_types(molecule_type&, std::function<void(molecule_type&)> = {});
+  // generic template for x_score layers
+  template<typename layer_type>
+    requires is_x_score_layer<layer_type>
+  void assign_x_score_types(layer_type&);
 
+  // Ligand Specialization (static)
   template<>
-  void assign_x_score_types(static_molecule&, std::function<void(static_molecule&)>);
+  void assign_x_score_types(x_score_static_layer&);
+
+  // Protein specialization (dynamic)
   template<>
-  void assign_x_score_types(dynamic_molecule&, std::function<void(dynamic_molecule&)>);
+  void assign_x_score_types(x_score_dynamic_layer&);
+
 } // namespace mudock

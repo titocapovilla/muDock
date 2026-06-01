@@ -53,13 +53,13 @@ namespace mudock {
     std::span<const xtool_residue_bond_description> bonds;
   };
 
-  static constexpr auto num_xtool_residues() { return {@ num_residues @}; }
-  extern const std::array<xtool_residue_description, num_xtool_residues()> XTOOL_RESIDUE_DICTIONARY;
+  static constexpr auto num_residues() { return {@ num_residues @}; }
+  extern const std::array<xtool_residue_description, num_residues()> XTOOL_RESIDUE_DICTIONARY;
   extern const std::unordered_map<std::string_view, xtool_residue> XTOOL_RESIDUE_LOOKUP;
 
   // Utility function to get the description by enum
   inline const xtool_residue_description& get_description(const xtool_residue r) {
-    assert(static_cast<int>(r) >= 0 && static_cast<int>(r) < num_xtool_residues());
+    assert(static_cast<int>(r) >= 0 && static_cast<int>(r) < num_residues());
     assert(XTOOL_RESIDUE_DICTIONARY[static_cast<int>(r)].value == r);
     return XTOOL_RESIDUE_DICTIONARY[static_cast<int>(r)];
   }

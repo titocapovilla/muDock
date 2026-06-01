@@ -886,7 +886,7 @@ namespace mudock {
 
     { "CG", "OD1", 2 },
 
-    { "CG", "ND2", am },
+    { "CG", "ND2", 3 },
 
     { "ND2", "HD21", 1 },
 
@@ -1544,7 +1544,7 @@ namespace mudock {
 
     { "CD", "OE1", 2 },
 
-    { "CD", "NE2", am },
+    { "CD", "NE2", 3 },
 
     { "NE2", "HE21", 1 },
 
@@ -2192,23 +2192,23 @@ namespace mudock {
 
     { "CB", "CG", 1 },
 
-    { "CG", "ND1", ar },
+    { "CG", "ND1", 4 },
 
     { "ND1", "HD1", 1 },
 
-    { "CG", "CD2", ar },
+    { "CG", "CD2", 4 },
 
     { "CD2", "HD2", 1 },
 
-    { "ND1", "CE1", ar },
+    { "ND1", "CE1", 4 },
 
     { "CE1", "HE1", 1 },
 
-    { "CD2", "NE2", ar },
+    { "CD2", "NE2", 4 },
 
     { "NE2", "HE2", 1 },
 
-    { "CE1", "NE2", ar }
+    { "CE1", "NE2", 4 }
 
   };
 
@@ -3874,25 +3874,25 @@ namespace mudock {
 
     { "CB", "CG", 1 },
 
-    { "CG", "CD1", ar },
+    { "CG", "CD1", 4 },
 
     { "CD1", "HD1", 1 },
 
-    { "CG", "CD2", ar },
+    { "CG", "CD2", 4 },
 
     { "CD2", "HD2", 1 },
 
-    { "CD1", "CE1", ar },
+    { "CD1", "CE1", 4 },
 
     { "CE1", "HE1", 1 },
 
-    { "CD2", "CE2", ar },
+    { "CD2", "CE2", 4 },
 
     { "CE2", "HE2", 1 },
 
-    { "CE1", "CZ", ar },
+    { "CE1", "CZ", 4 },
 
-    { "CE2", "CZ", ar },
+    { "CE2", "CZ", 4 },
 
     { "CZ", "HZ", 1 }
 
@@ -4904,35 +4904,35 @@ namespace mudock {
 
     { "CB", "CG", 1 },
 
-    { "CG", "CD1", ar },
+    { "CG", "CD1", 4 },
 
     { "CD1", "HD1", 1 },
 
-    { "CG", "CD2", ar },
+    { "CG", "CD2", 4 },
 
-    { "CD1", "NE1", ar },
+    { "CD1", "NE1", 4 },
 
     { "NE1", "HE1", 1 },
 
-    { "NE1", "CE2", ar },
+    { "NE1", "CE2", 4 },
 
-    { "CD2", "CE2", ar },
+    { "CD2", "CE2", 4 },
 
-    { "CD2", "CE3", ar },
+    { "CD2", "CE3", 4 },
 
     { "CE3", "HE3", 1 },
 
-    { "CE2", "CZ2", ar },
+    { "CE2", "CZ2", 4 },
 
     { "CZ2", "HZ2", 1 },
 
-    { "CE3", "CZ3", ar },
+    { "CE3", "CZ3", 4 },
 
     { "CZ3", "HZ3", 1 },
 
-    { "CZ2", "CH2", ar },
+    { "CZ2", "CH2", 4 },
 
-    { "CZ3", "CH2", ar },
+    { "CZ3", "CH2", 4 },
 
     { "CH2", "HH2", 1 }
 
@@ -5256,25 +5256,25 @@ namespace mudock {
 
     { "CB", "CG", 1 },
 
-    { "CG", "CD1", ar },
+    { "CG", "CD1", 4 },
 
     { "CD1", "HD1", 1 },
 
-    { "CG", "CD2", ar },
+    { "CG", "CD2", 4 },
 
     { "CD2", "HD2", 1 },
 
-    { "CD1", "CE1", ar },
+    { "CD1", "CE1", 4 },
 
     { "CE1", "HE1", 1 },
 
-    { "CD2", "CE2", ar },
+    { "CD2", "CE2", 4 },
 
     { "CE2", "HE2", 1 },
 
-    { "CE1", "CZ", ar },
+    { "CE1", "CZ", 4 },
 
-    { "CE2", "CZ", ar },
+    { "CE2", "CZ", 4 },
 
     { "CZ", "OH", 1 },
 

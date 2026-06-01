@@ -70,7 +70,7 @@ namespace mudock {
 
   };
 
-  static constexpr auto num_xtool_residues() { return 27; }
+  static constexpr auto num_residues() { return 27; }
 
   //string-to-enum translation
   constexpr residue parse_residue_name(std::string_view name) {

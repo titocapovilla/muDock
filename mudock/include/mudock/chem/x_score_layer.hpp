@@ -22,50 +22,31 @@ namespace mudock {
 
 
 
-    x_score_layer(molecule<container_aliases>& _molecule,
-                  std::function<void(molecule<container_aliases>&)> f = {})
-       : molecule_layer<container_aliases>(_molecule) {
+    x_score_layer(molecule<container_aliases>& _molecule) : molecule_layer<container_aliases>(_molecule) {
         // Trigger the preparation phase
         //resizing part
         const auto num_atoms = _molecule.num_atoms();
-        mudock::resize(vdw_radius, n_atoms);
-        //resize others
-        
-        
-        // 2. Decide which engine to use
-        // if (mol.properties.get("type") == "PROTEIN") {
-        //     prepare_protein(); // Uses the Residue Dictionary
-        // } else {
-        //     prepare_ligand();  // Uses the molecule.cpp logic
-        // }
 
-        prepare(f); 
+        mudock::resize(atom_x_score_xtool_type, num_atoms);
+        mudock::resize(atom_x_score_xlogp_type, num_atoms);
+
+        mudock::resize(vdw_radius, num_atoms);
+        // todo: add resize of other xscore parameters
+        
+        //prepare() is called in the specialized classes
     }
 
-  private:
+  protected:
     // todo: for the 3 structures below getters, setters and resize are to be implemented
     atoms_array_type<xtool_ff> atom_x_score_xtool_type;
     atoms_array_type<xlogp_ff> atom_x_score_xlogp_type;  
 
-    // xtool type array
-    atoms_array_type<xtool_ff>   atom_xtool_type;  
-    // todo add xlogp type
-
     // xtool radius
-    atoms_array_type<fp_type>    vdw_radius; 
+    atoms_array_type<fp_type> vdw_radius; 
     //todo add other xlogp and xtool parameters as needed
 
-    
-  // Atom Typing: For every atom in the molecule, determine its xtool_ff and xlogp_ff identity.
-  // Parameter Extraction: Look up that identity in your XTOOL_FF_DICTIONARY and XLOGP_FF_DICTIONARY.
-  // Filling: Copy the radius, potential, charge, and scales into the layer's contiguous arrays.
-
-  void prepare(std::function<void(molecule<container_aliases>&)> f = {}) {
-      //assign_x_score_xtool_types((*this)(), f);
-      //assign_x_score_xlogp_types((*this)(), f);
-
-
-    }
+    // declared as virtual, implemented in subclasses
+    virtual void prepare() = 0;
   
   
   

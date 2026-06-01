@@ -30,7 +30,7 @@ namespace mudock {
 {% endfor %}
 
   // --- Main Dictionary ---
-  const std::array<xtool_residue_description, num_xtool_residues()> XTOOL_RESIDUE_DICTIONARY = {{
+  const std::array<xtool_residue_description, num_residues()> XTOOL_RESIDUE_DICTIONARY = {{
 {% for residue in residue_type %}
     {
       xtool_residue::{@ residue.name @},
