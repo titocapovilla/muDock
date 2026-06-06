@@ -30,23 +30,62 @@ namespace mudock {
         mudock::resize(atom_x_score_xtool_type, num_atoms);
         mudock::resize(atom_x_score_xlogp_type, num_atoms);
 
-        mudock::resize(vdw_radius, num_atoms);
+        mudock::resize(atom_vdw_radius, num_atoms);
         // todo: add resize of other xscore parameters
         
-        //prepare() is called in the specialized classes
+        prepare();
     }
 
-  protected:
+    // span
+    [[nodiscard]] inline auto get_x_score_xtool_type() const {return make_span(atom_x_score_xtool_type, this->get_base_molecule().num_atoms());}
+    [[nodiscard]] inline auto get_x_score_xlogp_type() const {return make_span(atom_x_score_xlogp_type, this->get_base_molecule().num_atoms());}
+    [[nodiscard]] inline auto get_vdw_radius() const {return make_span(atom_vdw_radius, this->get_base_molecule().num_atoms());}
+
+    // getter
+    [[nodiscard]] inline auto& x_score_xtool_type(const int index) { return atom_x_score_xtool_type[index]; }
+    [[nodiscard]] inline auto& x_score_xlogp_type(const int index) { return atom_x_score_xlogp_type[index]; }
+    [[nodiscard]] inline auto& vdw_radius(const int index) { return atom_vdw_radius[index]; }
+
+    // getter for pointer to the data
+    [[nodiscard]] inline auto* x_score_xtool_type() { return atom_x_score_xtool_type.data(); }
+    [[nodiscard]] inline auto* x_score_xlogp_type() { return atom_x_score_xlogp_type.data(); }
+    [[nodiscard]] inline auto* vdw_radius() { return atom_vdw_radius.data(); }
+
+    // getter for const reference
+    [[nodiscard]] inline const auto& x_score_xtool_type(const int index) const { return atom_x_score_xtool_type[index]; }
+    [[nodiscard]] inline const auto& x_score_xlogp_type(const int index) const { return atom_x_score_xlogp_type[index]; }
+    [[nodiscard]] inline const auto& vdw_radius(const int index) const { return atom_vdw_radius[index]; }
+
+    void resize(const int n_atoms, int n_bonds) {
+      mudock::resize(atom_x_score_xtool_type, n_atoms);
+      mudock::resize(atom_x_score_xlogp_type, n_atoms);
+      mudock::resize(atom_vdw_radius, n_atoms);
+      molecule<container_aliases>::resize(n_atoms, n_bonds);
+    }
+
+    void remove_atom(const int index) {
+      mudock::remove_atom(atom_x_score_xtool_type, index);
+      mudock::remove_atom(atom_x_score_xlogp_type, index);
+      mudock::remove_atom(atom_vdw_radius, index);
+      molecule<container_aliases>::remove_atom(index);
+    }
+
+
+  private:
     // todo: for the 3 structures below getters, setters and resize are to be implemented
     atoms_array_type<xtool_ff> atom_x_score_xtool_type;
     atoms_array_type<xlogp_ff> atom_x_score_xlogp_type;  
 
     // xtool radius
-    atoms_array_type<fp_type> vdw_radius; 
+    atoms_array_type<fp_type> atom_vdw_radius; 
     //todo add other xlogp and xtool parameters as needed
 
+
     // declared as virtual, implemented in subclasses
-    virtual void prepare() = 0;
+    void prepare() {
+      // 1. Assign xtool and xlogp types based on the residue type of each atom
+      assign_x_score_types((*this));
+    }
   
   
   

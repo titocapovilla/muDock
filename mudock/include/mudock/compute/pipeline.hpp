@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <mudock/compute/adt_score.hpp>
+//#include <mudock/compute/x_score.hpp>
 #include <mudock/compute/genetic.hpp>
 #include <mudock/compute/scratchpad.hpp>
 #include <mudock/compute/stage.hpp>
@@ -49,6 +50,29 @@ namespace mudock {
       return get_adt_score_batch<queue_type>(atoms, q, max_mem / mem);
     }
   };
+
+  // struct x_score_pipeline: pipeline {
+  //   template<typename queue_type>
+  //   x_score<queue_type> get_pipeline(const knobs& conf,
+  //                                   const int id,
+  //                                   const device_type dev_type,
+  //                                   std::shared_ptr<scratchpad<queue_type>> device_scratch) {
+  //     return mudock::x_score<queue_type>(
+  //         std::make_shared<mudock::scratchpad<queue_type>>(conf, id, dev_type),
+  //         device_scratch,
+  //         *protein);
+  //   }
+
+  //   //TODO check if necessary
+  //   template<typename queue_type>
+  //   static int get_batch_size(const int atoms,
+  //                             std::shared_ptr<queue_type> q,
+  //                             const knobs& conf,
+  //                             const size_t max_mem = 1000000000) {
+  //     const int mem = mudock::x_score<queue_type>::get_ligand_mem(atoms, conf);
+  //     return get_x_score_batch<queue_type>(atoms, q, max_mem / mem);
+  //   }
+  // };
 
   struct genetic_adt_pipeline: pipeline {
     template<typename queue_type>

@@ -99,12 +99,18 @@ namespace mudock {
 
 			// parsing residue for proteins
       if constexpr (std::same_as<std::remove_cvref_t<molecule_type>, dynamic_molecule>) {
-       if (OpenBabel::OBResidue* ob_res = atom->GetResidue()) {
+        if (OpenBabel::OBResidue* ob_res = atom->GetResidue()) {
           std::string res_name = ob_res->GetName();
-          dest.residue_type(mudock_atom_index) = parse_residue_name(res_name);
-       } else {
-          dest.residue_type(mudock_atom_index) = residue::UNKNOWN;
-       }
+          std::string atom_name = ob_res->GetAtomID(atom);
+          dest.residue_types(mudock_atom_index) = parse_residue_name(res_name);
+          // remove spaces from atom name, e.g. " CA " -> "CA"
+          atom_name.erase(std::remove(atom_name.begin(), atom_name.end(), ' '), atom_name.end());
+          dest.atom_name(mudock_atom_index) = atom_name;
+        } else {
+          dest.residue_types(mudock_atom_index) = residue::UNKNOWN;
+          //TODO: check if we should leave empty string or assign "UNKNOWN" as well
+          dest.atom_name(mudock_atom_index) = "UNKNOWN";
+        }
       }
 
       index_translator.emplace(atom_id, mudock_atom_index);

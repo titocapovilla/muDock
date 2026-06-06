@@ -3,10 +3,10 @@
 #include <cstddef>
 #include <cstring>
 #include <mudock/batch.hpp>
-#include <mudock/chem/autodock_grid_types.hpp>
-#include <mudock/chem/autodock_ligand.hpp>
-#include <mudock/chem/autodock_protein.hpp>
-#include <mudock/compute/adt_score_kernel.hpp>
+#include <mudock/chem/x_score_ligand.hpp>
+#include <mudock/compute/x_score_kernel.hpp>
+#include <mudock/chem/x_score_protein.hpp>
+#include <mudock/chem/x_score_layer.hpp>
 #ifndef __CUDACC__
   #include <mudock/compute/buffer_utils.hpp>
   #include <mudock/compute/scoring.hpp>
@@ -15,100 +15,107 @@
 #include <mudock/molecule.hpp>
 #include <mudock/type_alias.hpp>
 
+//TODO: scratchpad to be understood
+
 namespace mudock {
 
   template<typename queue_type>
-  // requires std::derived_from<queue_type, queue>
   int get_x_score_batch(const int, std::shared_ptr<queue_type>, const size_t);
 
 #ifndef __CUDACC__
-  // TODO check that the object type and the kernel impl are the same
   template<typename queue_type>
   struct x_score: public scoring<queue_type> {
     x_score(std::shared_ptr<scratchpad<queue_type>> _scratch,
-              std::shared_ptr<scratchpad<queue_type>> _device_scratch,
-              dynamic_molecule &protein)
+            std::shared_ptr<scratchpad<queue_type>> _device_scratch,
+            dynamic_molecule & protein)
         : scoring<queue_type>(_scratch),
-          vols(_scratch->get_queue()),
-          solpars(_scratch->get_queue()),
-          charges(_scratch->get_queue()),
-          map_offsets(_scratch->get_queue()),
-          num_nonbond(_scratch->get_queue()),
-          nonbond_a1(_scratch->get_queue()),
-          nonbond_a2(_scratch->get_queue()),
-          nonbond_cA(_scratch->get_queue()),
-          nonbond_cB(_scratch->get_queue()),
-          nonbond_xB(_scratch->get_queue()),
+          lig_vdw(_scratch->get_queue()),
           device_scratch(_device_scratch) {
-
-            // TODO implement constructor
-
+            x_score_protein x_score_prot(protein);
+      // Niente griglie/protein cache: non serve per vdw radius-only
     }
 
     void prepare(batch<static_molecule> &batch) {
+      batch_ligands                = batch.num_ligands;
+      batch_atoms                  = batch.batch_max_atoms;
+      const int tot_atoms_in_batch = batch_ligands * batch_atoms;
 
-      // TODO implement Value_Atom()
+      load_num_rotamers(batch, this->scratch);
+      load_num_atoms(batch, this->scratch);
 
-      // TODO kernel call to be filled with correct parameters
-      kernel = std::make_unique<x_score_kernel<queue_type>>(scores_per_ligand,
-                                                              batch_ligands,
-                                                              batch_atoms,
-                                                              num_atoms_b,
-                                                              num_rotamers_b,
-                                                              num_nonbonds_b,
-                                                              x_scratch_b,
-                                                              y_scratch_b,
-                                                              z_scratch_b,
-                                                              vols_b,
-                                                              solpars_b,
-                                                              charges_b,
-                                                              map_offsets_b,
-                                                              nonbond_a1_b,
-                                                              nonbond_a2_b,
-                                                              nonbond_cA_b,
-                                                              nonbond_cB_b,
-                                                              nonbond_xB_b,
-                                                              grid_maps,
-                                                              minimum,
-                                                              maximum,
-                                                              center,
-                                                              map_index_x,
-                                                              map_index_xy,
-                                                              map_index_xyz,
-                                                              scores_b,
-                                                              q);
+      const int scores_per_ligand =
+          std::max(1, static_cast<int>((*this->scratch).configuration.population_number));
+
+      auto &score_b = (*this->scratch).template get<buffer_data_type::SCORES>();
+      if (!score_b.is_valid() ||
+          score_b.num_elements() != static_cast<size_t>(batch_ligands * scores_per_ligand)) {
+        score_b.alloc(batch_ligands * scores_per_ligand);
+        score_b.set_valid();
+      }
+
+      // --- vdw radius per ligando ---
+      lig_vdw.alloc(tot_atoms_in_batch);
+
+      for (int ligand_index = 0; ligand_index < batch_ligands; ++ligand_index) {
+        auto &ligand = *batch.molecules[ligand_index];
+        const int stride_atoms = ligand_index * batch_atoms;
+        const int num_atoms    = ligand.num_atoms();
+
+        x_score_ligand xs_lig{ligand}; // prepara typing + vdw_radius
+        const fp_type *vdw_src = xs_lig.vdw_radius_data(); // TODO: accessor nel layer
+
+        std::memcpy(lig_vdw() + stride_atoms, vdw_src, num_atoms * sizeof(fp_type));
+      }
+
+      lig_vdw.copy_host2device();
+
+      // Kernel minimale: usa solo vdw radius (e magari num_atoms/scores)
+      const int *num_atoms_b = (*this->scratch).template get<buffer_data_type::NUM_ATOMS>().dev_pointer();
+      fp_type *scores_b      = score_b.dev_pointer();
+      const fp_type *lig_vdw_b = lig_vdw.dev_pointer();
+
+      kernel = std::make_unique<x_score_kernel<queue_type>>(
+          scores_per_ligand,
+          batch_ligands,
+          batch_atoms,
+          num_atoms_b,
+          lig_vdw_b,
+          scores_b,
+          (*this->scratch).get_queue());
     }
 
     void operator()() {
-      assert(
-          (((*this->scratch).template get<buffer_data_type::SCORES>().num_elements() % batch_ligands) == 0) &&
-          "Number of scores is not a multiple of ligands in the batch");
       assert(kernel && "Kernel method not yet prepared");
       (*kernel)();
     }
 
+    static int get_ligand_mem(const int max_atoms, const knobs conf) {
+      int mem{0};
+      const int scores_per_ligand = std::max(1, static_cast<int>(conf.population_number));
+      mem += sizeof(fp_type) * scores_per_ligand; // scores
+      mem += sizeof(int);                         // num atoms
+      mem += sizeof(fp_type) * max_atoms;         // vdw radius
+      return mem;
+    }
+
   private:
-  // TODO preserve only useful parameters
-    int batch_ligands;
-    int batch_atoms;
+    int batch_ligands{0};
+    int batch_atoms{0};
 
-    buffer_vector<fp_type, queue_type> vols;
-    buffer_vector<fp_type, queue_type> solpars;
-    buffer_vector<fp_type, queue_type> charges;
-    buffer_vector<int, queue_type> map_offsets;
-    buffer_vector<int, queue_type> num_nonbond;
-    buffer_vector<int, queue_type> nonbond_a1;
-    buffer_vector<int, queue_type> nonbond_a2;
-    buffer_vector<fp_type, queue_type> nonbond_cA;
-    buffer_vector<fp_type, queue_type> nonbond_cB;
-    buffer_vector<int, queue_type> nonbond_xB;
-
+    buffer_vector<fp_type, queue_type> lig_vdw;
     std::shared_ptr<scratchpad<queue_type>> device_scratch;
     std::unique_ptr<x_score_kernel<queue_type>> kernel;
 
     void teardown_impl(batch<static_molecule> &batch) override {
-
-    };
+      auto &scores_b               = (*this->scratch).template get<buffer_data_type::SCORES>();
+      const auto scores_per_ligand = scores_b.num_elements() / batch.num_ligands;
+      scores_b.copy_device2host();
+      (*this->scratch).get_queue()->synchronize();
+      for (int i = 0; i < batch.num_ligands; ++i) {
+        auto &ligand = *batch.molecules[i];
+        ligand.properties.assign(property_type::SCORE, std::to_string(scores_b()[i * scores_per_ligand]));
+      }
+    }
   };
 #endif
 } // namespace mudock
