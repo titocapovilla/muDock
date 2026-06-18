@@ -48,8 +48,9 @@ namespace mudock {
 
     atoms_array_type<residue> atom_residue_types;
     atoms_array_type<std::string> atom_names;
+    atoms_array_type<xtool_ff> atom_types; //to be tested
 
-
+  
 
     atoms_array_type<int> atom_is_aromatic;
     atoms_array_type<fp_type> atom_charge;
@@ -101,6 +102,7 @@ namespace mudock {
     // utility functions to get the span of the whole molecule (read + write)
     [[nodiscard]] inline auto get_autodock_type() { return make_span(atom_autodock_type, atoms_size); }
     [[nodiscard]] inline auto get_residue_types() { return make_span(atom_residue_types, atoms_size); }
+    [[nodiscard]] inline auto get_atom_type() { return make_span(atom_types, atoms_size); }
     [[nodiscard]] inline auto get_elements() { return make_span(atom_elements, atoms_size); }
     [[nodiscard]] inline auto get_x() { return make_span(x_coordinates, atoms_size); }
     [[nodiscard]] inline auto get_y() { return make_span(y_coordinates, atoms_size); }
@@ -111,6 +113,7 @@ namespace mudock {
     [[nodiscard]] inline auto get_num_hbond() const { return make_span(atom_num_hbond, atoms_size); }
     [[nodiscard]] inline auto get_atom_residue_types() const { return make_span(atom_residue_types, atoms_size); }
     [[nodiscard]] inline auto get_atom_name() const { return make_span(atom_names, atoms_size); }
+    [[nodiscard]] inline auto get_atom_type() const { return make_span(atom_types, atoms_size); }
 
     // utility functions to get the span of the whole molecule (read only)
     [[nodiscard]] inline auto get_elements() const { return make_span(atom_elements, atoms_size); }
@@ -130,6 +133,7 @@ namespace mudock {
     [[nodiscard]] inline auto& num_hbond(const int index) { return atom_num_hbond[index]; }
     [[nodiscard]] inline auto& residue_types(const int index) { return atom_residue_types[index]; }
     [[nodiscard]] inline auto& atom_name(const int index) { return atom_names[index]; }
+    [[nodiscard]] inline auto& atom_type(const int index) { return atom_types[index]; }
 
     // utility functions to get the ref to an atom element (read + write)
     [[nodiscard]] inline auto* autodock_type() { return atom_autodock_type.data(); }
@@ -142,6 +146,7 @@ namespace mudock {
     [[nodiscard]] inline auto* num_hbond() { return atom_num_hbond.data(); }
     [[nodiscard]] inline auto* residue_types() { return atom_residue_types.data(); }
     [[nodiscard]] inline auto* atom_name() { return atom_names.data(); }
+    [[nodiscard]] inline auto* atom_type() { return atom_types.data(); }
 
     // utility functions to get the ref to an atom element (read only)
     [[nodiscard]] inline const auto& autodock_type(const int index) const {
@@ -156,6 +161,7 @@ namespace mudock {
     [[nodiscard]] inline const auto& num_hbond(const int index) const { return atom_num_hbond[index]; }
     [[nodiscard]] inline const auto& residue_types(const int index) const { return atom_residue_types[index]; }
     [[nodiscard]] inline const auto& atom_name(const int index) const { return atom_names[index]; }
+    [[nodiscard]] inline const auto& atom_type(const int index) const { return atom_types[index]; }
 
   };
 
@@ -190,6 +196,7 @@ namespace mudock {
     mudock::resize(atom_autodock_type, n_atoms);
     mudock::resize(atom_residue_types, n_atoms);
     mudock::resize(atom_names, n_atoms);
+    mudock::resize(atom_types, n_atoms);
     mudock::resize(atom_is_aromatic, n_atoms);
     mudock::resize(atom_charge, n_atoms);
     mudock::resize(atom_num_hbond, n_atoms);
@@ -206,6 +213,7 @@ namespace mudock {
     mudock::remove_atom(z_coordinates, index);
     mudock::remove_atom(atom_residue_types, index);
     mudock::remove_atom(atom_names, index);
+    mudock::remove_atom(atom_types, index);
     mudock::resize(bond_descriptions, index);
     mudock::resize(atom_autodock_type, index);
     mudock::resize(atom_is_aromatic, index);

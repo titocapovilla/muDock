@@ -3,6 +3,7 @@
 #include <mudock/chem/autodock_parameters.hpp>
 #include <mudock/chem/autodock_types.hpp>
 #include <mudock/chem/residue.hpp>
+#include <mudock/chem/x_score_xtool_types.hpp>
 #include <mudock/molecule.hpp>
 #include <openbabel/atom.h>
 #include <openbabel/bond.h>
@@ -111,6 +112,12 @@ namespace mudock {
           //TODO: check if we should leave empty string or assign "UNKNOWN" as well
           dest.atom_name(mudock_atom_index) = "UNKNOWN";
         }
+      }
+
+      // assigning atom_type for ligands (not working)
+      if constexpr (std::same_as<std::remove_cvref_t<molecule_type>, static_molecule>) {
+        dest.atom_type(mudock_atom_index) = parse_xtool_type(atom_type);
+        std::cout << "Atom_type: " << get_description(dest.atom_type(mudock_atom_index)).name << '\n';
       }
 
       index_translator.emplace(atom_id, mudock_atom_index);
