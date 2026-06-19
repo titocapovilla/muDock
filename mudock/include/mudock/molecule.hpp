@@ -46,8 +46,11 @@ namespace mudock {
 
     atoms_array_type<autodock_ff> atom_autodock_type;
 
+    // protein-specific fields
     atoms_array_type<residue> atom_residue_types;
     atoms_array_type<std::string> atom_names;
+
+    // ligand-specific fields
     atoms_array_type<xtool_ff> atom_types; //to be tested
 
   
