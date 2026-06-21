@@ -114,7 +114,7 @@ namespace mudock {
         }
       }
 
-      // assigning atom_type for ligands (not working)
+      // assigning atom_type for ligands
       if constexpr (std::same_as<std::remove_cvref_t<molecule_type>, static_molecule>) {
         dest.atom_type(mudock_atom_index) = parse_xtool_type(atom_type);
         std::cout << "Atom_type: " << get_description(dest.atom_type(mudock_atom_index)).name << '\n';
