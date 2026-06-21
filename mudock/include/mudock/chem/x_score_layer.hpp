@@ -4,7 +4,7 @@
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <mudock/chem/x_score_xlogp_types.hpp>
 #include <mudock/chem/residue.hpp>
-#include <mudock/chem/x_score_xtool_residue_types.hpp>
+#include <mudock/chem/x_score_residue_xtool_types.hpp>
 #include <mudock/chem/molecule_layer.hpp>
 #include <mudock/grid/mdspan.hpp>
 #include <mudock/type_alias.hpp>

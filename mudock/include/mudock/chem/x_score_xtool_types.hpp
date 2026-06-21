@@ -14,87 +14,87 @@ namespace mudock {
   // List of all known atoms for X-TOOL force field
   enum class xtool_ff : int {
 
-    C_3 = 0, // C_3
+    C3 = 0, // C3
 
-    C_3_x = 1, // C_3_x
+    C3x = 1, // C3x
 
-    C_3_un = 2, // C_3_un
+    C3un = 2, // C3un
 
-    C_2 = 3, // C_2
+    C2 = 3, // C2
 
-    C_2_x = 4, // C_2_x
+    C2x = 4, // C2x
 
-    C_2_un = 5, // C_2_un
+    C2un = 5, // C2un
 
-    C_ar = 6, // C_ar
+    Car = 6, // Car
 
-    C_ar_x = 7, // C_ar_x
+    Carx = 7, // Carx
 
-    C_ar_un = 8, // C_ar_un
+    Carun = 8, // Carun
 
-    C_1 = 9, // C_1
+    C1 = 9, // C1
 
-    C_1_x = 10, // C_1_x
+    C1x = 10, // C1x
 
-    C_1_un = 11, // C_1_un
+    C1un = 11, // C1un
 
-    C_cat = 12, // C_cat
+    Ccat = 12, // Ccat
 
-    N_3_h = 13, // N_3_h
+    N3h = 13, // N3h
 
-    N_3 = 14, // N_3
+    N3 = 14, // N3
 
-    N_3_un = 15, // N_3_un
+    N3un = 15, // N3un
 
-    N_pl3_h = 16, // N_pl3_h
+    Npl3h = 16, // Npl3h
 
-    N_pl3 = 17, // N_pl3
+    Npl3 = 17, // Npl3
 
-    N_pl3_un = 18, // N_pl3_un
+    Npl3un = 18, // Npl3un
 
-    N_2_h = 19, // N_2_h
+    N2h = 19, // N2h
 
-    N_2 = 20, // N_2
+    N2 = 20, // N2
 
-    N_2_un = 21, // N_2_un
+    N2un = 21, // N2un
 
-    N_ar_h = 22, // N_ar_h
+    Narh = 22, // Narh
 
-    N_ar = 23, // N_ar
+    Nar = 23, // Nar
 
-    N_ar_un = 24, // N_ar_un
+    Narun = 24, // Narun
 
-    N_1 = 25, // N_1
+    N1 = 25, // N1
 
-    N_1_un = 26, // N_1_un
+    N1un = 26, // N1un
 
-    N_4 = 27, // N_4
+    N4 = 27, // N4
 
-    O_3_h = 28, // O_3_h
+    O3h = 28, // O3h
 
-    O_3 = 29, // O_3
+    O3 = 29, // O3
 
-    O_3_un = 30, // O_3_un
+    O3un = 30, // O3un
 
-    O_2 = 31, // O_2
+    O2 = 31, // O2
 
-    O_2_un = 32, // O_2_un
+    O2un = 32, // O2un
 
-    O_co2 = 33, // O_co2
+    Oco2 = 33, // Oco2
 
-    S_3_h = 34, // S_3_h
+    S3h = 34, // S3h
 
-    S_3 = 35, // S_3
+    S3 = 35, // S3
 
-    S_3_un = 36, // S_3_un
+    S3un = 36, // S3un
 
-    S_2 = 37, // S_2
+    S2 = 37, // S2
 
-    S_2_un = 38, // S_2_un
+    S2un = 38, // S2un
 
-    S_o = 39, // S_o
+    So = 39, // So
 
-    P_3 = 40, // P_3
+    P3 = 40, // P3
 
     F = 41, // F
 
@@ -106,22 +106,22 @@ namespace mudock {
 
     H = 45, // H
 
-    H_hb = 46, // H_hb
+    Hhb = 46, // Hhb
 
     Si = 47, // Si
 
-    O_w = 48, // O_w
+    Ow = 48, // Ow
 
     Mplus = 49, // Mplus
 
     Un = 50, // Un
 
-    // non xtool types added for type mismatch in residue
+    // non xtool types added for type mismatch in residue (added manually)
 
     //xlogp
-    N_am = 51, // N_am
+    Nam = 51, // Nam
 
-    S_o2 = 52, // S_o2
+    So2 = 52, // So2
 
     //ions
     Li = 53, // Li

@@ -18,8 +18,8 @@ namespace mudock {
   }
   const std::array<xtool_ff_description, 72> XTOOL_FF_DICTIONARY = {{
     {
-      xtool_ff::C_3,
-      "C_3",
+      xtool_ff::C3,
+      "C3",
       12.01,
       2.100,
       0.000,
@@ -28,8 +28,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_3_x,
-      "C_3_x",
+      xtool_ff::C3x,
+      "C3x",
       12.01,
       2.100,
       0.000,
@@ -38,8 +38,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_3_un,
-      "C_3_un",
+      xtool_ff::C3un,
+      "C3un",
       12.01,
       2.100,
       0.000,
@@ -48,8 +48,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_2,
-      "C_2",
+      xtool_ff::C2,
+      "C2",
       12.01,
       1.900,
       0.000,
@@ -58,8 +58,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_2_x,
-      "C_2_x",
+      xtool_ff::C2x,
+      "C2x",
       12.01,
       1.900,
       0.000,
@@ -68,8 +68,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_2_un,
-      "C_2_un",
+      xtool_ff::C2un,
+      "C2un",
       12.01,
       1.900,
       0.000,
@@ -78,8 +78,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_ar,
-      "C_ar",
+      xtool_ff::Car,
+      "Car",
       12.01,
       2.000,
       0.000,
@@ -88,8 +88,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_ar_x,
-      "C_ar_x",
+      xtool_ff::Carx,
+      "Carx",
       12.01,
       2.000,
       0.000,
@@ -98,8 +98,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_ar_un,
-      "C_ar_un",
+      xtool_ff::Carun,
+      "Carun",
       12.01,
       2.000,
       0.000,
@@ -108,8 +108,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_1,
-      "C_1",
+      xtool_ff::C1,
+      "C1",
       12.01,
       1.800,
       0.000,
@@ -118,8 +118,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_1_x,
-      "C_1_x",
+      xtool_ff::C1x,
+      "C1x",
       12.01,
       1.800,
       0.000,
@@ -128,8 +128,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_1_un,
-      "C_1_un",
+      xtool_ff::C1un,
+      "C1un",
       12.01,
       1.800,
       0.000,
@@ -138,8 +138,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::C_cat,
-      "C_cat",
+      xtool_ff::Ccat,
+      "Ccat",
       12.01,
       1.900,
       0.000,
@@ -148,8 +148,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_3_h,
-      "N_3_h",
+      xtool_ff::N3h,
+      "N3h",
       14.01,
       1.800,
       0.000,
@@ -158,8 +158,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_3,
-      "N_3",
+      xtool_ff::N3,
+      "N3",
       14.01,
       1.800,
       0.000,
@@ -168,8 +168,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_3_un,
-      "N_3_un",
+      xtool_ff::N3un,
+      "N3un",
       14.01,
       1.800,
       0.000,
@@ -178,8 +178,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_pl3_h,
-      "N_pl3_h",
+      xtool_ff::Npl3h,
+      "Npl3h",
       14.01,
       1.750,
       0.000,
@@ -188,8 +188,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_pl3,
-      "N_pl3",
+      xtool_ff::Npl3,
+      "Npl3",
       14.01,
       1.750,
       0.000,
@@ -198,8 +198,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_pl3_un,
-      "N_pl3_un",
+      xtool_ff::Npl3un,
+      "Npl3un",
       14.01,
       1.750,
       0.000,
@@ -208,8 +208,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_2_h,
-      "N_2_h",
+      xtool_ff::N2h,
+      "N2h",
       14.01,
       1.750,
       0.000,
@@ -218,8 +218,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_2,
-      "N_2",
+      xtool_ff::N2,
+      "N2",
       14.01,
       1.750,
       0.000,
@@ -228,8 +228,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_2_un,
-      "N_2_un",
+      xtool_ff::N2un,
+      "N2un",
       14.01,
       1.750,
       0.000,
@@ -238,8 +238,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_ar_h,
-      "N_ar_h",
+      xtool_ff::Narh,
+      "Narh",
       14.01,
       1.750,
       0.000,
@@ -248,8 +248,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_ar,
-      "N_ar",
+      xtool_ff::Nar,
+      "Nar",
       14.01,
       1.750,
       0.000,
@@ -258,8 +258,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_ar_un,
-      "N_ar_un",
+      xtool_ff::Narun,
+      "Narun",
       14.01,
       1.750,
       0.000,
@@ -268,8 +268,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_1,
-      "N_1",
+      xtool_ff::N1,
+      "N1",
       14.01,
       1.750,
       0.000,
@@ -278,8 +278,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_1_un,
-      "N_1_un",
+      xtool_ff::N1un,
+      "N1un",
       14.01,
       1.750,
       0.000,
@@ -288,8 +288,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::N_4,
-      "N_4",
+      xtool_ff::N4,
+      "N4",
       14.01,
       1.800,
       0.000,
@@ -298,8 +298,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::O_3_h,
-      "O_3_h",
+      xtool_ff::O3h,
+      "O3h",
       16.00,
       1.650,
       0.000,
@@ -308,8 +308,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::O_3,
-      "O_3",
+      xtool_ff::O3,
+      "O3",
       16.00,
       1.650,
       0.000,
@@ -318,8 +318,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::O_3_un,
-      "O_3_un",
+      xtool_ff::O3un,
+      "O3un",
       16.00,
       1.650,
       0.000,
@@ -328,8 +328,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::O_2,
-      "O_2",
+      xtool_ff::O2,
+      "O2",
       16.00,
       1.550,
       0.000,
@@ -338,8 +338,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::O_2_un,
-      "O_2_un",
+      xtool_ff::O2un,
+      "O2un",
       16.00,
       1.550,
       0.000,
@@ -348,8 +348,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::O_co2,
-      "O_co2",
+      xtool_ff::Oco2,
+      "Oco2",
       16.00,
       1.550,
       0.000,
@@ -358,8 +358,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::S_3_h,
-      "S_3_h",
+      xtool_ff::S3h,
+      "S3h",
       32.07,
       2.100,
       0.000,
@@ -368,8 +368,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::S_3,
-      "S_3",
+      xtool_ff::S3,
+      "S3",
       32.07,
       2.100,
       0.000,
@@ -378,8 +378,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::S_3_un,
-      "S_3_un",
+      xtool_ff::S3un,
+      "S3un",
       32.07,
       2.100,
       0.000,
@@ -388,8 +388,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::S_2,
-      "S_2",
+      xtool_ff::S2,
+      "S2",
       32.07,
       2.000,
       0.000,
@@ -398,8 +398,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::S_2_un,
-      "S_2_un",
+      xtool_ff::S2un,
+      "S2un",
       32.07,
       2.000,
       0.000,
@@ -408,8 +408,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::S_o,
-      "S_o",
+      xtool_ff::So,
+      "So",
       32.07,
       2.000,
       0.000,
@@ -418,8 +418,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::P_3,
-      "P_3",
+      xtool_ff::P3,
+      "P3",
       30.97,
       2.000,
       0.000,
@@ -478,8 +478,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::H_hb,
-      "H_hb",
+      xtool_ff::Hhb,
+      "Hhb",
       1.00,
       1.000,
       0.000,
@@ -498,8 +498,8 @@ namespace mudock {
     },
 
     {
-      xtool_ff::O_w,
-      "O_w",
+      xtool_ff::Ow,
+      "Ow",
       16.00,
       1.750,
       0.000,
@@ -530,8 +530,8 @@ namespace mudock {
     // non xtool types added for type mismatch in residue
     //xlogp
     {
-      xtool_ff::N_am,
-      "N_am",
+      xtool_ff::Nam,
+      "Nam",
       14.01,
       1.750,
       0.000,
@@ -541,8 +541,8 @@ namespace mudock {
 
     //xlogp
     {
-      xtool_ff::S_o2,
-      "S_o2",
+      xtool_ff::So2,
+      "So2",
       32.07,
       2.000,
       0.000,

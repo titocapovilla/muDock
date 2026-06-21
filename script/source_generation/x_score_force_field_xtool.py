@@ -16,7 +16,7 @@ LINE_RE = re.compile(
 
 
 def to_enum_name(atom_type: str) -> str:
-    return atom_type.replace(".", "_").replace("+", "plus")
+    return atom_type.replace(".", "").replace("+", "plus")
 
 # define path to stuff
 script_dirpath = pathlib.Path(__file__).parent

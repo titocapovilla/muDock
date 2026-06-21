@@ -1,9 +1,9 @@
 {
   "ff_type": 
-  [
+[
     {
-        "value": "C_3",
-        "name": "C_3",
+        "value": "C3",
+        "name": "C3",
         "atomic_weight": "12.01",
         "vdw_radius": "2.100",
         "vdw_potential": "0.000",
@@ -11,8 +11,8 @@
         "hbond": "H"
     },
     {
-        "value": "C_3_x",
-        "name": "C_3_x",
+        "value": "C3x",
+        "name": "C3x",
         "atomic_weight": "12.01",
         "vdw_radius": "2.100",
         "vdw_potential": "0.000",
@@ -20,8 +20,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_3_un",
-        "name": "C_3_un",
+        "value": "C3un",
+        "name": "C3un",
         "atomic_weight": "12.01",
         "vdw_radius": "2.100",
         "vdw_potential": "0.000",
@@ -29,8 +29,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_2",
-        "name": "C_2",
+        "value": "C2",
+        "name": "C2",
         "atomic_weight": "12.01",
         "vdw_radius": "1.900",
         "vdw_potential": "0.000",
@@ -38,8 +38,8 @@
         "hbond": "H"
     },
     {
-        "value": "C_2_x",
-        "name": "C_2_x",
+        "value": "C2x",
+        "name": "C2x",
         "atomic_weight": "12.01",
         "vdw_radius": "1.900",
         "vdw_potential": "0.000",
@@ -47,8 +47,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_2_un",
-        "name": "C_2_un",
+        "value": "C2un",
+        "name": "C2un",
         "atomic_weight": "12.01",
         "vdw_radius": "1.900",
         "vdw_potential": "0.000",
@@ -56,8 +56,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_ar",
-        "name": "C_ar",
+        "value": "Car",
+        "name": "Car",
         "atomic_weight": "12.01",
         "vdw_radius": "2.000",
         "vdw_potential": "0.000",
@@ -65,8 +65,8 @@
         "hbond": "H"
     },
     {
-        "value": "C_ar_x",
-        "name": "C_ar_x",
+        "value": "Carx",
+        "name": "Carx",
         "atomic_weight": "12.01",
         "vdw_radius": "2.000",
         "vdw_potential": "0.000",
@@ -74,8 +74,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_ar_un",
-        "name": "C_ar_un",
+        "value": "Carun",
+        "name": "Carun",
         "atomic_weight": "12.01",
         "vdw_radius": "2.000",
         "vdw_potential": "0.000",
@@ -83,8 +83,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_1",
-        "name": "C_1",
+        "value": "C1",
+        "name": "C1",
         "atomic_weight": "12.01",
         "vdw_radius": "1.800",
         "vdw_potential": "0.000",
@@ -92,8 +92,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_1_x",
-        "name": "C_1_x",
+        "value": "C1x",
+        "name": "C1x",
         "atomic_weight": "12.01",
         "vdw_radius": "1.800",
         "vdw_potential": "0.000",
@@ -101,8 +101,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_1_un",
-        "name": "C_1_un",
+        "value": "C1un",
+        "name": "C1un",
         "atomic_weight": "12.01",
         "vdw_radius": "1.800",
         "vdw_potential": "0.000",
@@ -110,8 +110,8 @@
         "hbond": "P"
     },
     {
-        "value": "C_cat",
-        "name": "C_cat",
+        "value": "Ccat",
+        "name": "Ccat",
         "atomic_weight": "12.01",
         "vdw_radius": "1.900",
         "vdw_potential": "0.000",
@@ -119,8 +119,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_3_h",
-        "name": "N_3_h",
+        "value": "N3h",
+        "name": "N3h",
         "atomic_weight": "14.01",
         "vdw_radius": "1.800",
         "vdw_potential": "0.000",
@@ -128,8 +128,8 @@
         "hbond": "D"
     },
     {
-        "value": "N_3",
-        "name": "N_3",
+        "value": "N3",
+        "name": "N3",
         "atomic_weight": "14.01",
         "vdw_radius": "1.800",
         "vdw_potential": "0.000",
@@ -137,8 +137,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_3_un",
-        "name": "N_3_un",
+        "value": "N3un",
+        "name": "N3un",
         "atomic_weight": "14.01",
         "vdw_radius": "1.800",
         "vdw_potential": "0.000",
@@ -146,8 +146,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_pl3_h",
-        "name": "N_pl3_h",
+        "value": "Npl3h",
+        "name": "Npl3h",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -155,8 +155,8 @@
         "hbond": "D"
     },
     {
-        "value": "N_pl3",
-        "name": "N_pl3",
+        "value": "Npl3",
+        "name": "Npl3",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -164,8 +164,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_pl3_un",
-        "name": "N_pl3_un",
+        "value": "Npl3un",
+        "name": "Npl3un",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -173,8 +173,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_2_h",
-        "name": "N_2_h",
+        "value": "N2h",
+        "name": "N2h",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -182,8 +182,8 @@
         "hbond": "DA"
     },
     {
-        "value": "N_2",
-        "name": "N_2",
+        "value": "N2",
+        "name": "N2",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -191,8 +191,8 @@
         "hbond": "A"
     },
     {
-        "value": "N_2_un",
-        "name": "N_2_un",
+        "value": "N2un",
+        "name": "N2un",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -200,8 +200,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_ar_h",
-        "name": "N_ar_h",
+        "value": "Narh",
+        "name": "Narh",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -209,8 +209,8 @@
         "hbond": "D"
     },
     {
-        "value": "N_ar",
-        "name": "N_ar",
+        "value": "Nar",
+        "name": "Nar",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -218,8 +218,8 @@
         "hbond": "A"
     },
     {
-        "value": "N_ar_un",
-        "name": "N_ar_un",
+        "value": "Narun",
+        "name": "Narun",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -227,8 +227,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_1",
-        "name": "N_1",
+        "value": "N1",
+        "name": "N1",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -236,8 +236,8 @@
         "hbond": "A"
     },
     {
-        "value": "N_1_un",
-        "name": "N_1_un",
+        "value": "N1un",
+        "name": "N1un",
         "atomic_weight": "14.01",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -245,8 +245,8 @@
         "hbond": "P"
     },
     {
-        "value": "N_4",
-        "name": "N_4",
+        "value": "N4",
+        "name": "N4",
         "atomic_weight": "14.01",
         "vdw_radius": "1.800",
         "vdw_potential": "0.000",
@@ -254,8 +254,8 @@
         "hbond": "D"
     },
     {
-        "value": "O_3_h",
-        "name": "O_3_h",
+        "value": "O3h",
+        "name": "O3h",
         "atomic_weight": "16.00",
         "vdw_radius": "1.650",
         "vdw_potential": "0.000",
@@ -263,8 +263,8 @@
         "hbond": "DA"
     },
     {
-        "value": "O_3",
-        "name": "O_3",
+        "value": "O3",
+        "name": "O3",
         "atomic_weight": "16.00",
         "vdw_radius": "1.650",
         "vdw_potential": "0.000",
@@ -272,8 +272,8 @@
         "hbond": "A"
     },
     {
-        "value": "O_3_un",
-        "name": "O_3_un",
+        "value": "O3un",
+        "name": "O3un",
         "atomic_weight": "16.00",
         "vdw_radius": "1.650",
         "vdw_potential": "0.000",
@@ -281,8 +281,8 @@
         "hbond": "P"
     },
     {
-        "value": "O_2",
-        "name": "O_2",
+        "value": "O2",
+        "name": "O2",
         "atomic_weight": "16.00",
         "vdw_radius": "1.550",
         "vdw_potential": "0.000",
@@ -290,8 +290,8 @@
         "hbond": "A"
     },
     {
-        "value": "O_2_un",
-        "name": "O_2_un",
+        "value": "O2un",
+        "name": "O2un",
         "atomic_weight": "16.00",
         "vdw_radius": "1.550",
         "vdw_potential": "0.000",
@@ -299,8 +299,8 @@
         "hbond": "P"
     },
     {
-        "value": "O_co2",
-        "name": "O_co2",
+        "value": "Oco2",
+        "name": "Oco2",
         "atomic_weight": "16.00",
         "vdw_radius": "1.550",
         "vdw_potential": "0.000",
@@ -308,8 +308,8 @@
         "hbond": "DA"
     },
     {
-        "value": "S_3_h",
-        "name": "S_3_h",
+        "value": "S3h",
+        "name": "S3h",
         "atomic_weight": "32.07",
         "vdw_radius": "2.100",
         "vdw_potential": "0.000",
@@ -317,8 +317,8 @@
         "hbond": "H"
     },
     {
-        "value": "S_3",
-        "name": "S_3",
+        "value": "S3",
+        "name": "S3",
         "atomic_weight": "32.07",
         "vdw_radius": "2.100",
         "vdw_potential": "0.000",
@@ -326,8 +326,8 @@
         "hbond": "H"
     },
     {
-        "value": "S_3_un",
-        "name": "S_3_un",
+        "value": "S3un",
+        "name": "S3un",
         "atomic_weight": "32.07",
         "vdw_radius": "2.100",
         "vdw_potential": "0.000",
@@ -335,8 +335,8 @@
         "hbond": "P"
     },
     {
-        "value": "S_2",
-        "name": "S_2",
+        "value": "S2",
+        "name": "S2",
         "atomic_weight": "32.07",
         "vdw_radius": "2.000",
         "vdw_potential": "0.000",
@@ -344,8 +344,8 @@
         "hbond": "P"
     },
     {
-        "value": "S_2_un",
-        "name": "S_2_un",
+        "value": "S2un",
+        "name": "S2un",
         "atomic_weight": "32.07",
         "vdw_radius": "2.000",
         "vdw_potential": "0.000",
@@ -353,8 +353,8 @@
         "hbond": "P"
     },
     {
-        "value": "S_o",
-        "name": "S_o",
+        "value": "So",
+        "name": "So",
         "atomic_weight": "32.07",
         "vdw_radius": "2.000",
         "vdw_potential": "0.000",
@@ -362,8 +362,8 @@
         "hbond": "P"
     },
     {
-        "value": "P_3",
-        "name": "P_3",
+        "value": "P3",
+        "name": "P3",
         "atomic_weight": "30.97",
         "vdw_radius": "2.000",
         "vdw_potential": "0.000",
@@ -416,8 +416,8 @@
         "hbond": "N"
     },
     {
-        "value": "H_hb",
-        "name": "H_hb",
+        "value": "Hhb",
+        "name": "Hhb",
         "atomic_weight": "1.00",
         "vdw_radius": "1.000",
         "vdw_potential": "0.000",
@@ -434,8 +434,8 @@
         "hbond": "N"
     },
     {
-        "value": "O_w",
-        "name": "O_w",
+        "value": "Ow",
+        "name": "Ow",
         "atomic_weight": "16.00",
         "vdw_radius": "1.750",
         "vdw_potential": "0.000",
@@ -460,5 +460,5 @@
         "par_charge": "0.000",
         "hbond": "N"
     }
-  ] 
+]
 }

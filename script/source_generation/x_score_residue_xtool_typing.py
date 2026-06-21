@@ -31,7 +31,7 @@ def to_enum_name(text: str) -> str:
     name = re.sub(r"=", "eq", name)
     name = re.sub(r">", "gt", name)
     name = re.sub(r"<", "lt", name)
-    name = re.sub(r"\.", "_", name)
+    name = re.sub(r"\.", "", name)
     name = re.sub(r"[()]+", "_", name)
     name = re.sub(r"[^A-Za-z0-9_]+", "_", name)
     name = re.sub(r"_+", "_", name)
