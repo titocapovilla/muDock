@@ -25,11 +25,13 @@
             // Estrae il nome in formato testuale dall'enum (es. "C.2.x")
             auto type_string_name = mudock::get_description(xtool_type).name;
             auto atom_type_string = mudock::get_description(atom_type).name;
+            auto vdw_r = xs_lig.vdw_radius(i);
 
             // Print formattato
             std::cout << "Atom Name: " << name
                       << " atom type: " << atom_type_string
-                      << " xtool type:       " << type_string_name << "\n";
+                      << " xtool type:          " << type_string_name
+                      << " vdw radius: " << vdw_r << "\n";
 	}
     }
 

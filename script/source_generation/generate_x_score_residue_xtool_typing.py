@@ -3,6 +3,11 @@ import pathlib
 import sys
 import jinja2
 
+# the generated cpp has to be heavily modified
+# - HET Bonds (No candidate for construction) -> empty
+# - Xtool_residue --> residue (renaming)
+# - moved enum map from hpp to cpp, and maybe we should move that map to a dedicated residue.cpp
+
 def main() -> None:
     script_dirpath = pathlib.Path(__file__).parent
     root_dirpath = script_dirpath.parent.parent

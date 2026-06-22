@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <stdexcept>
 
@@ -8,13 +9,24 @@
 
 namespace mudock {
   xtool_ff parse_xtool_type(const std::string_view symbol) {
+    std::string_view search_symbol = symbol;
+    
+    // OpenBabel translates some Sybyl 'H' types to 'HO', 'HN', etc. internally.
+    // Map them back to "H" so the dictionary lookup succeeds.
+    // The assign_x_score_types logic will refine them to Hhb later if needed.
+    if (symbol == "HO" || symbol == "HN") {
+        search_symbol = "H";
+    }
+
     const auto element_it = std::find_if(std::begin(XTOOL_FF_DICTIONARY),
                                          std::end(XTOOL_FF_DICTIONARY),
-                                         [&symbol](const auto& e) { return e.name == symbol; });
+                                         [&search_symbol](const auto& e) { return e.name == search_symbol; });
     if (element_it != std::end(XTOOL_FF_DICTIONARY))
       return element_it->value;
-    else
-      throw std::runtime_error("Missing xtool type");
+    else {
+      std::cout << "Missing xtool type: " << symbol << std::endl;
+      throw std::runtime_error(std::string("Missing xtool type: ") + std::string(symbol));
+    }
   }
   const std::array<xtool_ff_description, 72> XTOOL_FF_DICTIONARY = {{
     {
