@@ -4,6 +4,9 @@
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <mudock/molecule/graph.hpp>
 
+#include <cctype>
+#include <string>
+
 
 namespace mudock {
 
@@ -322,8 +325,29 @@ namespace mudock {
 
           // DATA SAVING
           layer.x_score_xtool_type(i) = assigned_type;
+          layer.vdw_radius(i) = get_description(assigned_type).vdw_radius;
 
       }
+  }
+
+  //===------------------------------------------------------------------------------------------------------
+  // Converts old PDB hydrogen naming convention to modern PDB v3.
+  // Old convention: digit prefix, e.g. "1HD2", "2HE2", "1HG1"
+  // Modern convention: digit suffix, e.g. "HD21", "HE22", "HG11"
+  // XScore's PDB parser handles both conventions; this normalization
+  // allows our template lookup to match atoms from old-format PDB files.
+  // Returns empty string if the name is not in old-convention format.
+  //===------------------------------------------------------------------------------------------------------
+  static std::string normalize_old_pdb_hydrogen_name(std::string_view name) {
+    // Old convention: first char is a digit, remaining chars are the atom name
+    // e.g. "1HD2" → leading '1' + "HD2" → "HD2" + '1' → "HD21"
+    if (name.size() >= 2 && std::isdigit(static_cast<unsigned char>(name[0])) &&
+        !std::isdigit(static_cast<unsigned char>(name[1]))) {
+      std::string normalized(name.substr(1));
+      normalized += name[0];
+      return normalized;
+    }
+    return {};
   }
 
   // PROTEIN SPECIALIZATION
@@ -346,15 +370,62 @@ namespace mudock {
             if (atom_tmpl.name == atom_name) {
                 // Assign the X-Score types found in the dictionary
                 layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+                layer.vdw_radius(i) = atom_tmpl.vdw_radius;
                 //logp type can also be assigned here if needed
                 found = true;
                 break;
             }
         }
 
+        // Fallback 1: try normalizing old PDB hydrogen names (e.g. "1HD2" → "HD21")
+        // and retry the lookup in the same residue template.
+        std::string normalized_name;
         if (!found) {
-            // Handle cases where PDB name doesn't match
+            normalized_name = normalize_old_pdb_hydrogen_name(atom_name);
+            if (!normalized_name.empty()) {
+                for (const auto& atom_tmpl : res_desc.atoms) {
+                    if (atom_tmpl.name == normalized_name) {
+                        layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+                        layer.vdw_radius(i) = atom_tmpl.vdw_radius;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Fallback 2: check the TER (terminal) residue template.
+        // Mirrors XScore behavior where, if an atom name is not found in its
+        // own residue definition, the parser searches the TER template which
+        // defines N- and C-terminal atoms (e.g., HN1, HN2, HN3, OXT, HOCA).
+        if (!found) {
+            const auto& ter_desc = get_description(residue::TER);
+            // Try original name first
+            for (const auto& atom_tmpl : ter_desc.atoms) {
+                if (atom_tmpl.name == atom_name) {
+                    layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+                    layer.vdw_radius(i) = atom_tmpl.vdw_radius;
+                    found = true;
+                    break;
+                }
+            }
+            // Try normalized name in TER as well
+            if (!found && !normalized_name.empty()) {
+                for (const auto& atom_tmpl : ter_desc.atoms) {
+                    if (atom_tmpl.name == normalized_name) {
+                        layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+                        layer.vdw_radius(i) = atom_tmpl.vdw_radius;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!found) {
+            // Handle cases where PDB name doesn't match any known template
             layer.x_score_xtool_type(i) = xtool_ff::Un;
+            layer.vdw_radius(i) = get_description(xtool_ff::Un).vdw_radius;
         }
     }
   }

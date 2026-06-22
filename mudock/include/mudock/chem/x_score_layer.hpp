@@ -81,19 +81,11 @@ namespace mudock {
     //todo add other xlogp and xtool parameters as needed
 
 
-    void assign_vdw_radii() {
-      const auto num_atoms = this->get_base_molecule().num_atoms();
-      for (int i = 0; i < num_atoms; ++i) {
-        atom_vdw_radius[i] = get_description(atom_x_score_xtool_type[i]).vdw_radius;
-      }
-    }
-
     // declared as virtual, implemented in subclasses
     void prepare() {
       // 1. Assign xtool and xlogp types based on the residue type of each atom
+      // This will also assign parameters like vdw_radius
       assign_x_score_types((*this));
-      // 2. Assign vdw radii
-      assign_vdw_radii();
     }
   
   
