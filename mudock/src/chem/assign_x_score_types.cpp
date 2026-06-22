@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <boost/graph/adjacency_list.hpp>
 #include <cctype>
 #include <filesystem>
@@ -8,6 +9,7 @@
 #include <mudock/molecule/graph.hpp>
 #include <sstream>
 #include <string>
+#include <vector>
 
 namespace mudock {
 
@@ -19,9 +21,7 @@ namespace mudock {
 
   // Returns true if the neighbor xtool_ff type represents a hydrogen atom.
   // Mirrors XScore: group.neib[i].type[0]=='H'
-  static bool is_hydrogen_type(xtool_ff t) {
-		return t == xtool_ff::H || t == xtool_ff::Hhb;
-	}
+  static bool is_hydrogen_type(xtool_ff t) { return t == xtool_ff::H || t == xtool_ff::Hhb; }
 
   // Returns true if the neighbor xtool_ff type represents a heteroatom
   // (F, Cl, Br, I, or any N/O/P/S type — but NOT Si or C).
@@ -73,10 +73,8 @@ namespace mudock {
       case xtool_ff::S2:
       case xtool_ff::S2un:
       case xtool_ff::So:
-      case xtool_ff::So2:
-				return true;
-      default:
-				return false;
+      case xtool_ff::So2: return true;
+      default: return false;
     }
   }
 
@@ -107,10 +105,8 @@ namespace mudock {
       case xtool_ff::Narun:
       case xtool_ff::N1:
       case xtool_ff::N1un:
-      case xtool_ff::Nam:
-				return true;
-      default:
-				return false;
+      case xtool_ff::Nam: return true;
+      default: return false;
     }
   }
 
@@ -125,6 +121,7 @@ namespace mudock {
     // Only needed for Hydrogen atoms to determine if they are Hydrogen Bond donors (H.hb)
     bool is_bonded_to_ON = false;
   };
+
 
   //===------------------------------------------------------------------------------------------------------
   // Reads the original mol2 file (if SOURCE_PATH is provided) and overrides the sybyl
@@ -187,6 +184,326 @@ namespace mudock {
   }
 
   //===------------------------------------------------------------------------------------------------------
+  // XScore-compatible aromatic ring detection.
+  //
+  // OpenBabel's IsAromatic() does NOT match XScore's Detect_Aromatic_Rings().
+  // XScore has its own ring perception algorithm:
+  //   1. Find which atoms/bonds are in rings (branch elimination)
+  //   2. For each ring bond, find the smallest ring it belongs to (Look_For_A_Ring)
+  //   3. Check 6-membered rings: all atoms must be C.ar/N.ar/C.2/N.2, and no two
+  //      consecutive single/amide bonds allowed (Aromatic_Ring_Check_6)
+  //   4. Check 5-membered rings: Hückel rule (6 pi electrons), with N.pl3/N.am/O.3/S.3
+  //      contributing 2 pi electrons each (Aromatic_Ring_Check_5)
+  //   5. Mark all atoms in aromatic rings as ring=2
+  //
+  // This implementation ports that algorithm to mudock's graph infrastructure.
+  //===------------------------------------------------------------------------------------------------------
+
+  // Check if an atom's SYBYL type qualifies as a pi contributor in a 6-membered aromatic ring.
+  // XScore Aromatic_Ring_Check_6: C.ar, N.ar, C.2, N.2 each contribute 1 pi electron.
+  static bool is_6ring_pi_atom(xtool_ff t) {
+    return t == xtool_ff::Car || t == xtool_ff::Nar || t == xtool_ff::C2 || t == xtool_ff::N2;
+  }
+
+  // Get the pi electron count for an atom in a 5-membered ring.
+  // Returns 0 if the atom type cannot participate in a 5-membered aromatic ring.
+  // XScore Aromatic_Ring_Check_5:
+  //   C.ar, N.ar, C.2, N.2 → 1 pi electron
+  //   N.pl3, N.am, O.3, S.3 → 2 pi electrons
+  static int get_5ring_pi_count(xtool_ff t) {
+    switch (t) {
+      case xtool_ff::Car:
+      case xtool_ff::Nar:
+      case xtool_ff::C2:
+      case xtool_ff::N2: return 1;
+      case xtool_ff::Npl3:
+      case xtool_ff::Nam:
+      case xtool_ff::O3:
+      case xtool_ff::O3h:
+      case xtool_ff::S3:
+      case xtool_ff::S3h: return 2;
+      default: return 0;
+    }
+  }
+
+  // Check if a bond type is "single" for the purpose of aromatic ring detection.
+  // XScore checks: !strcmp(bond.type,"1") || !strcmp(bond.type,"am")
+  static bool is_single_or_amide_bond(bond_type bt) {
+    return bt == bond_type::SINGLE || bt == bond_type::AMIDE;
+  }
+
+  // Compute per-atom XScore-compatible aromaticity flag (equivalent to atom.ring==2).
+  // This replaces the use of OpenBabel's is_aromatic flag.
+  static std::vector<bool> detect_xscore_aromaticity(const molecule_graph_type& graph,
+                                                     const std::span<const xtool_ff> sybyl_types,
+                                                     const std::span<const bond> bonds,
+                                                     const std::size_t num_atoms) {
+    std::vector<bool> xscore_aromatic(num_atoms, false);
+
+    // --- Step 1: Detect which atoms are in rings (XScore's branch elimination) ---
+    // atom_ring: -1 = ambiguous, 0 = not in ring, 1 = in a ring
+    std::vector<int> atom_ring(num_atoms, -1);
+
+    // Terminal atoms (degree <= 1) cannot be in rings
+    for (std::size_t i = 0; i < num_atoms; ++i) {
+      if (boost::degree(i, graph) <= 1) {
+        atom_ring[i] = 0;
+      }
+    }
+
+    // Collapse structure: repeatedly remove atoms that have <= 1 ring-eligible neighbor
+    bool changed = true;
+    while (changed) {
+      changed = false;
+      for (std::size_t i = 0; i < num_atoms; ++i) {
+        if (atom_ring[i] != -1)
+          continue;
+
+        int ring_neighbor_count = 0;
+        auto [vi, vi_end]       = boost::adjacent_vertices(i, graph);
+        for (; vi != vi_end; ++vi) {
+          if (atom_ring[*vi] != 0) {
+            ring_neighbor_count++;
+          }
+        }
+        if (ring_neighbor_count <= 1) {
+          atom_ring[i] = 0;
+          changed      = true;
+        }
+      }
+    }
+
+    // Mark remaining ambiguous atoms as in-ring
+    for (std::size_t i = 0; i < num_atoms; ++i) {
+      if (atom_ring[i] == -1)
+        atom_ring[i] = 1;
+    }
+
+    // --- Step 2: Find rings using DFS and check aromaticity ---
+    // For each bond whose both endpoints are in-ring atoms, try to find
+    // a 6-membered or 5-membered ring containing it.
+
+    // Helper: find a ring of exactly target_size containing the bond (src, dst).
+    // Uses iterative DFS from dst, avoiding src until we loop back to src.
+    // Returns the atom path (atom indices) if found, empty otherwise.
+    auto find_ring_of_size = [&](int src, int dst, int target_size) -> std::vector<int> {
+      // DFS state: (current_atom, path_so_far)
+      struct dfs_state {
+        int atom;
+        std::vector<int> path;
+      };
+
+      std::vector<dfs_state> stack;
+      stack.push_back({dst, {src, dst}});
+
+      while (!stack.empty()) {
+        auto [current, path] = std::move(stack.back());
+        stack.pop_back();
+
+        if (static_cast<int>(path.size()) > target_size)
+          continue;
+
+        auto [ni, ni_end] = boost::adjacent_vertices(current, graph);
+        for (; ni != ni_end; ++ni) {
+          int next = static_cast<int>(*ni);
+
+          // If we found our way back to src with exactly target_size atoms
+          if (next == src && static_cast<int>(path.size()) == target_size) {
+            return path;
+          }
+
+          // Skip non-ring atoms
+          if (atom_ring[next] != 1)
+            continue;
+
+          // Skip if already in path (avoid revisiting)
+          if (std::find(path.begin(), path.end(), next) != path.end())
+            continue;
+
+          // Don't go back to src prematurely
+          if (next == src)
+            continue;
+
+          // Only continue if we haven't exceeded target size
+          if (static_cast<int>(path.size()) < target_size) {
+            auto new_path = path;
+            new_path.push_back(next);
+            stack.push_back({next, std::move(new_path)});
+          }
+        }
+      }
+      return {};
+    };
+
+    // Helper: given a ring atom path, find the bond types along the ring edges
+    auto get_ring_bond_types = [&](const std::vector<int>& ring_atoms) -> std::vector<bond_type> {
+      std::vector<bond_type> ring_bonds;
+      int n = static_cast<int>(ring_atoms.size());
+      for (int j = 0; j < n; ++j) {
+        int a1 = ring_atoms[j];
+        int a2 = ring_atoms[(j + 1) % n];
+        // Find the bond between a1 and a2 using graph edges
+        auto [ei, ei_end] = boost::out_edges(a1, graph);
+        for (; ei != ei_end; ++ei) {
+          int target = static_cast<int>(boost::target(*ei, graph));
+          if (target == a2) {
+            ring_bonds.push_back(bonds[graph[*ei].bond_index].type);
+            break;
+          }
+        }
+      }
+      return ring_bonds;
+    };
+
+    // Track which bond pairs have already been checked so we don't duplicate work
+    // (XScore iterates bonds, we iterate edges)
+    auto make_bond_key = [](int a, int b) -> long long {
+      if (a > b)
+        std::swap(a, b);
+      return static_cast<long long>(a) * 1000000 + b;
+    };
+
+    // --- Check 6-membered rings first (XScore does 6 before 5) ---
+    {
+      std::vector<long long> checked_bonds;
+      auto ei_pair = boost::edges(graph);
+      for (auto ei = ei_pair.first; ei != ei_pair.second; ++ei) {
+        int a1 = static_cast<int>(boost::source(*ei, graph));
+        int a2 = static_cast<int>(boost::target(*ei, graph));
+
+        // Skip bonds not in a ring
+        if (atom_ring[a1] != 1 || atom_ring[a2] != 1)
+          continue;
+
+        // Skip already-aromatic bonds (already found in a ring)
+        long long bk = make_bond_key(a1, a2);
+        if (std::find(checked_bonds.begin(), checked_bonds.end(), bk) != checked_bonds.end())
+          continue;
+        checked_bonds.push_back(bk);
+
+        auto ring_atoms = find_ring_of_size(a1, a2, 6);
+        if (ring_atoms.empty())
+          continue;
+
+        // Aromatic_Ring_Check_6: all 6 atoms must be C.ar/N.ar/C.2/N.2
+        bool all_pi  = true;
+        int pi_count = 0;
+        for (int atom_idx: ring_atoms) {
+          if (is_6ring_pi_atom(sybyl_types[atom_idx])) {
+            pi_count++;
+          } else {
+            all_pi = false;
+            break;
+          }
+        }
+        if (!all_pi || pi_count != 6)
+          continue;
+
+        // Check no two consecutive single/amide bonds
+        auto ring_bond_types = get_ring_bond_types(ring_atoms);
+        if (static_cast<int>(ring_bond_types.size()) != 6)
+          continue;
+
+        bool has_consecutive_single = false;
+        for (int j = 0; j < 5; ++j) {
+          if (is_single_or_amide_bond(ring_bond_types[j]) &&
+              is_single_or_amide_bond(ring_bond_types[j + 1])) {
+            has_consecutive_single = true;
+            break;
+          }
+        }
+        // Also check wrap-around (bond[5] and bond[0])
+        if (!has_consecutive_single) {
+          if (is_single_or_amide_bond(ring_bond_types[5]) && is_single_or_amide_bond(ring_bond_types[0])) {
+            has_consecutive_single = true;
+          }
+        }
+        if (has_consecutive_single)
+          continue;
+
+        // Mark all atoms in this ring as aromatic
+        for (int atom_idx: ring_atoms) { xscore_aromatic[atom_idx] = true; }
+      }
+    }
+
+    // --- Then check 5-membered rings ---
+    {
+      std::vector<long long> checked_bonds;
+      auto ei_pair = boost::edges(graph);
+      for (auto ei = ei_pair.first; ei != ei_pair.second; ++ei) {
+        int a1 = static_cast<int>(boost::source(*ei, graph));
+        int a2 = static_cast<int>(boost::target(*ei, graph));
+
+        // Skip bonds not in a ring, and skip bonds already marked aromatic
+        // (XScore: bond[i].ring!=1 means already aromatic or not in ring)
+        if (atom_ring[a1] != 1 || atom_ring[a2] != 1)
+          continue;
+        if (xscore_aromatic[a1] && xscore_aromatic[a2])
+          continue;
+
+        long long bk = make_bond_key(a1, a2);
+        if (std::find(checked_bonds.begin(), checked_bonds.end(), bk) != checked_bonds.end())
+          continue;
+        checked_bonds.push_back(bk);
+
+        auto ring_atoms = find_ring_of_size(a1, a2, 5);
+        if (ring_atoms.empty())
+          continue;
+
+        // Aromatic_Ring_Check_5: check pi electrons
+        bool valid   = true;
+        int total_pi = 0;
+        std::vector<int> pi_per_atom(5);
+        for (int j = 0; j < 5; ++j) {
+          int pi = get_5ring_pi_count(sybyl_types[ring_atoms[j]]);
+          if (pi == 0) {
+            valid = false;
+            break;
+          }
+          pi_per_atom[j] = pi;
+          total_pi += pi;
+        }
+        if (!valid || total_pi != 6)
+          continue; // Hückel's rule: 4n+2 = 6
+
+        // Check no two consecutive single/amide bonds unless the middle atom
+        // contributes 2 pi electrons (the "special atom" exception)
+        auto ring_bond_types = get_ring_bond_types(ring_atoms);
+        if (static_cast<int>(ring_bond_types.size()) != 5)
+          continue;
+
+        bool has_bad_consecutive = false;
+        for (int j = 0; j < 4; ++j) {
+          if (is_single_or_amide_bond(ring_bond_types[j]) &&
+              is_single_or_amide_bond(ring_bond_types[j + 1])) {
+            // XScore: if(pi_path[i+1]==2) continue; — the atom between the two
+            // single bonds contributes 2 pi electrons, which is okay
+            if (pi_per_atom[j + 1] == 2)
+              continue;
+            has_bad_consecutive = true;
+            break;
+          }
+        }
+        // Wrap-around check: bond[4] and bond[0], middle atom is ring_atoms[0]
+        if (!has_bad_consecutive) {
+          if (is_single_or_amide_bond(ring_bond_types[4]) && is_single_or_amide_bond(ring_bond_types[0])) {
+            if (pi_per_atom[0] != 2) {
+              has_bad_consecutive = true;
+            }
+          }
+        }
+        if (has_bad_consecutive)
+          continue;
+
+        // Mark all atoms in this ring as aromatic
+        for (int atom_idx: ring_atoms) { xscore_aromatic[atom_idx] = true; }
+      }
+    }
+
+    return xscore_aromatic;
+  }
+
+  //===------------------------------------------------------------------------------------------------------
   // LIGAND SPECIALIZATION
   // Mirrors XScore's Get_XTOOL_Type 1:1 by predicating on xtool_ff types (SYBYL equivalents)
   // stored in mol.atom_type(i) by the ob_wrapper, rather than on periodic table elements.
@@ -204,6 +521,12 @@ namespace mudock {
     // Create the topological graph on-the-fly using the bond array.
     // This provides O(1) neighbor lookups and is deallocated at function exit.
     const auto graph = make_graph(mol.get_bonds(), num_atoms);
+
+    // Compute XScore-compatible aromaticity flags.
+    // This replaces OpenBabel's is_aromatic, which does NOT match XScore's
+    // Detect_Aromatic_Rings algorithm. XScore considers C.2, N.2, N.pl3, N.am
+    // atoms in suitable rings as aromatic (ring=2), while OpenBabel may not.
+    const auto xscore_aromatic = detect_xscore_aromaticity(graph, sybyl_types, mol.get_bonds(), num_atoms);
 
     for (std::size_t i = 0; i < num_atoms; ++i) {
       atom_environment env;
@@ -242,7 +565,8 @@ namespace mudock {
       // of the center atom. Each block corresponds to a specific XScore type check.
       xtool_ff assigned_type     = xtool_ff::Un;
       const xtool_ff center_type = sybyl_types[i];
-      const bool is_aromatic     = mol.is_aromatic(i); // equivalent to atom.ring==2 in XScore
+      // Use XScore-compatible aromaticity instead of OpenBabel's is_aromatic
+      const bool is_aromatic = xscore_aromatic[i];
 
       // XScore: if(!strcmp(atom.type,"H")||!strcmp(atom.type,"H.spc"))
       if (is_hydrogen_type(center_type)) {
