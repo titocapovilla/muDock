@@ -1,5 +1,6 @@
 #include <iostream>
     #include <string>
+    #include <iomanip>
     #include <mudock/format/reader.hpp>
     #include <mudock/chem/x_score_ligand.hpp>
     #include <mudock/chem/elements.hpp>
@@ -28,9 +29,9 @@
             auto vdw_r = xs_lig.vdw_radius(i);
 
             // Print formattato
-            std::cout << "Atom Name: " << name
-                      << " atom type: " << atom_type_string
-                      << " xtool type:          " << type_string_name
+            std::cout << std::left 
+                      << " atom type: " << std::setw(10) << atom_type_string
+                      << " xtool type: " << std::setw(15) << type_string_name
                       << " vdw radius: " << vdw_r << "\n";
 	}
     }
