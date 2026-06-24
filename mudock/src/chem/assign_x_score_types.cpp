@@ -791,6 +791,7 @@ namespace mudock {
       for (const auto& atom_tmpl: res_desc.atoms) {
         if (atom_tmpl.name == atom_name) {
           // Assign the X-Score types found in the dictionary
+          mol.atom_type(i)            = atom_tmpl.basic_atom_type;
           layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
           layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
           //logp type can also be assigned here if needed
