@@ -1,10 +1,10 @@
- #pragma once
+#pragma once
 
- #include <functional>
- #include <mudock/chem/x_score_layer.hpp>
+#include <functional>
+#include <mudock/chem/x_score_layer.hpp>
 
- namespace mudock {
-  
+namespace mudock {
+
   /**
    * @brief This class assigns x-score's x_tool and x_logp types.
    * 

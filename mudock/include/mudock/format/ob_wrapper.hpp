@@ -115,9 +115,10 @@ namespace mudock {
       }
 
       // assigning atom_type for ligands
+      // todo: remove this if, the alternative parsing is done at the layer stage
       if constexpr (std::same_as<std::remove_cvref_t<molecule_type>, static_molecule>) {
-        dest.atom_type(mudock_atom_index) = parse_xtool_type(atom_type);
-        std::cout << "Atom_type: " << get_description(dest.atom_type(mudock_atom_index)).name << '\n';
+        //dest.atom_type(mudock_atom_index) = parse_xtool_type(atom_type);
+        //std::cout << "Atom_type: " << get_description(dest.atom_type(mudock_atom_index)).name << '\n';
       }
 
       index_translator.emplace(atom_id, mudock_atom_index);
