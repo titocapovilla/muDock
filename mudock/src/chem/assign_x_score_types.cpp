@@ -3,6 +3,7 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <mudock/chem/assign_x_score_types.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
@@ -122,7 +123,6 @@ namespace mudock {
     bool is_bonded_to_ON = false;
   };
 
-
   //===------------------------------------------------------------------------------------------------------
   // Reads the original mol2 file (if SOURCE_PATH is provided) and overrides the sybyl
   // types assigned by OpenBabel. This ensures the correct typing is used for X-Score mapping.
@@ -139,11 +139,11 @@ namespace mudock {
     const auto input_path = std::filesystem::path{source_path};
     std::ifstream file(input_path);
     if (!file.is_open()) {
-			//todo remove debug line
+      //todo remove debug line
       std::cout << "Failed open file \n";
       return;
     };
-		//todo remove debug line
+    //todo remove debug line
     std::cout << "Success in reparsing \n";
 
     const std::size_t num_atoms = mol.num_atoms();
@@ -168,8 +168,9 @@ namespace mudock {
         std::string sybyl_str;
         while (iss >> token) {
           if (col == 5) { // 6th column (0-indexed) is the SYBYL type
-            for (char c : token) {
-                if (c != '.') sybyl_str += c;
+            for (char c: token) {
+              if (c != '.')
+                sybyl_str += c;
             }
             break;
           }
@@ -783,40 +784,57 @@ namespace mudock {
       residue res_type           = mol.residue_types(i);
       std::string_view atom_name = mol.atom_name(i);
 
-      // Get the blueprint for this residue
-      const auto& res_desc = get_description(res_type);
+      // Debug print to catch invalid residue types before they crash the program
+      int res_enum_val = static_cast<int>(res_type);
 
-      // Match the atom name to the dictionary entry
       bool found = false;
-      for (const auto& atom_tmpl: res_desc.atoms) {
-        if (atom_tmpl.name == atom_name) {
-          // Assign the X-Score types found in the dictionary
-          mol.atom_type(i)            = atom_tmpl.basic_atom_type;
-          layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
-          layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
-          //logp type can also be assigned here if needed
-          found = true;
-          break;
-        }
-      }
 
-      // Fallback 1: try normalizing old PDB hydrogen names (e.g. "1HD2" → "HD21")
-      // and retry the lookup in the same residue template.
-      std::string normalized_name;
-      if (!found) {
-        normalized_name = normalize_old_pdb_hydrogen_name(atom_name);
-        if (!normalized_name.empty()) {
-          for (const auto& atom_tmpl: res_desc.atoms) {
-            if (atom_tmpl.name == normalized_name) {
-              mol.atom_type(i)            = atom_tmpl.basic_atom_type;
-              layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
-              layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
-              found                       = true;
-              break;
+      // if your residue in not UNKNOWN (27)
+      if (res_enum_val >= 0 && res_enum_val < mudock::num_residues()) {
+        const auto& res_desc = get_description(res_type);
+
+        // Match the atom name to the dictionary entry
+        for (const auto& atom_tmpl: res_desc.atoms) {
+          if (atom_tmpl.name == atom_name) {
+            // Assign the X-Score types found in the dictionary
+            mol.atom_type(i)            = atom_tmpl.basic_atom_type;
+            layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+            layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+            //logp type can also be assigned here if needed
+            found = true;
+            break;
+          }
+        }
+
+        // Fallback 1: try normalizing old PDB hydrogen names (e.g. "1HD2" → "HD21")
+        // and retry the lookup in the same residue template.
+        std::string normalized_name;
+        if (!found) {
+          normalized_name = normalize_old_pdb_hydrogen_name(atom_name);
+          if (!normalized_name.empty()) {
+            for (const auto& atom_tmpl: res_desc.atoms) {
+              if (atom_tmpl.name == normalized_name) {
+                mol.atom_type(i)            = atom_tmpl.basic_atom_type;
+                layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+                layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+                found                       = true;
+                break;
+              }
             }
           }
         }
       }
+
+      if(found) continue;
+      //   std::cout << "!!! DEBUG WARNING !!! Invalid residue type detected.\n"
+      //             << "Atom index: " << i << "\n"
+      //             << "Atom name: " << atom_name << "\n"
+      //             << "Raw residue enum value: " << res_enum_val << std::endl;
+      //   continue; // Skip this atom and prevent the crash
+      // } else {
+      //   std::cout << std::left << "Atom name: " << std::setw(6) << atom_name
+      //             << " Residue name: " << mudock::get_description(res_type).name << std::endl;
+      // }
 
       // Fallback 2: check the TER (terminal) residue template.
       // Mirrors XScore behavior where, if an atom name is not found in its
@@ -835,14 +853,49 @@ namespace mudock {
           }
         }
         // Try normalized name in TER as well
-        if (!found && !normalized_name.empty()) {
-          for (const auto& atom_tmpl: ter_desc.atoms) {
-            if (atom_tmpl.name == normalized_name) {
-              mol.atom_type(i)            = atom_tmpl.basic_atom_type;
-              layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
-              layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
-              found                       = true;
-              break;
+        std::string normalized_name;
+        if (!found) {
+          normalized_name = normalize_old_pdb_hydrogen_name(atom_name);
+          if (!normalized_name.empty()) {
+            for (const auto& atom_tmpl: ter_desc.atoms) {
+              if (atom_tmpl.name == normalized_name) {
+                mol.atom_type(i)            = atom_tmpl.basic_atom_type;
+                layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+                layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+                found                       = true;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Fallback 3: check the HET (hetero) residue template.
+      if (!found) {
+        const auto& het_desc = get_description(residue::HET);
+        // Try original name first
+        for (const auto& atom_tmpl: het_desc.atoms) {
+          if (atom_tmpl.name == atom_name) {
+            mol.atom_type(i)            = atom_tmpl.basic_atom_type;
+            layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+            layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+            found                       = true;
+            break;
+          }
+        }
+        // Try normalized name in HET as well
+        std::string normalized_name;
+        if (!found) {
+          normalized_name = normalize_old_pdb_hydrogen_name(atom_name);
+          if (!normalized_name.empty()) {
+            for (const auto& atom_tmpl: het_desc.atoms) {
+              if (atom_tmpl.name == normalized_name) {
+                mol.atom_type(i)            = atom_tmpl.basic_atom_type;
+                layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
+                layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+                found                       = true;
+                break;
+              }
             }
           }
         }
@@ -854,6 +907,20 @@ namespace mudock {
         layer.x_score_xtool_type(i) = xtool_ff::Un;
         layer.vdw_radius(i)         = get_description(xtool_ff::Un).vdw_radius;
       }
+
+      // todo: debugging line shows atoms who's xtool type has been determined via fallback methods
+      // std::string res_name_str = (res_enum_val >= 0 && res_enum_val < mudock::num_residues()) 
+      //                            ? std::string(mudock::get_description(res_type).name) 
+      //                            : "UNKNOWN";
+
+      // std::cout << std::left 
+      //           << "Atom name: "  << std::setw(6) << atom_name
+      //           << " atom_type: " << std::setw(6) << mudock::get_description(mol.atom_type(i)).name
+      //           << " Res_name: "  << std::setw(6) << res_name_str
+      //           << " xtool_type: "<< std::setw(6) << mudock::get_description(layer.x_score_xtool_type(i)).name 
+      //           << std::endl;
+
+
     }
   }
 
