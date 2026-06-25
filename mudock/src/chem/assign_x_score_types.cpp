@@ -808,6 +808,7 @@ namespace mudock {
         if (!normalized_name.empty()) {
           for (const auto& atom_tmpl: res_desc.atoms) {
             if (atom_tmpl.name == normalized_name) {
+              mol.atom_type(i)            = atom_tmpl.basic_atom_type;
               layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
               layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
               found                       = true;
@@ -826,6 +827,7 @@ namespace mudock {
         // Try original name first
         for (const auto& atom_tmpl: ter_desc.atoms) {
           if (atom_tmpl.name == atom_name) {
+            mol.atom_type(i)            = atom_tmpl.basic_atom_type;
             layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
             layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
             found                       = true;
@@ -836,6 +838,7 @@ namespace mudock {
         if (!found && !normalized_name.empty()) {
           for (const auto& atom_tmpl: ter_desc.atoms) {
             if (atom_tmpl.name == normalized_name) {
+              mol.atom_type(i)            = atom_tmpl.basic_atom_type;
               layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
               layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
               found                       = true;
@@ -847,6 +850,7 @@ namespace mudock {
 
       if (!found) {
         // Handle cases where PDB name doesn't match any known template
+        mol.atom_type(i)            = xtool_ff::Un;
         layer.x_score_xtool_type(i) = xtool_ff::Un;
         layer.vdw_radius(i)         = get_description(xtool_ff::Un).vdw_radius;
       }

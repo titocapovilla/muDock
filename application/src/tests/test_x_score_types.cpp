@@ -73,19 +73,19 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
   //cycle all ligand atoms
   for (std::size_t i = 0; i < num_ligand_atoms; ++i) {
     // todo: check if atom is valid
-    //if (ligand.atom_type(i) == mudock::xtool_ff::H) continue;
-    //if (ligand.atom_type(i) == mudock::xtool_ff::Hhb) continue;
-    //if (ligand.atom_type(i) == mudock::xtool_ff::Hg) continue;
+    if (ligand.atom_type(i) == mudock::xtool_ff::H) continue;
+    if (ligand.atom_type(i) == mudock::xtool_ff::Hhb) continue;
+    if (ligand.atom_type(i) == mudock::xtool_ff::Hg) continue;
 
     asum                                = 0.000;
     const std::size_t num_protein_atoms = protein.num_atoms();
 
     for (std::size_t j = 0; j < num_protein_atoms; ++j) {
       //todo check if atom is valid
-      //if (protein.atom_type(j) == mudock::xtool_ff::H) continue;
-      //if (protein.atom_type(j) == mudock::xtool_ff::Hhb) continue;
-      //if (protein.atom_type(j) == mudock::xtool_ff::Hg) continue;
-      //if (protein.atom_type(j) == mudock::xtool_ff::Ow) continue;
+      if (protein.atom_type(j) == mudock::xtool_ff::H) continue;
+      if (protein.atom_type(j) == mudock::xtool_ff::Hhb) continue;
+      if (protein.atom_type(j) == mudock::xtool_ff::Hg) continue;
+      if (protein.atom_type(j) == mudock::xtool_ff::Ow) continue;
 
       float d0  = xs_lig.vdw_radius(i) + xs_prot.vdw_radius(j);
       float l_x = ligand.x(i);
@@ -99,9 +99,13 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
           calculate_distance(ligand.x(i), ligand.y(i), ligand.z(i), protein.x(j), protein.y(j), protein.z(j));
 
       int dummy = 0;
-      
-      std::cout << "protein atom_type: " << mudock::get_description(protein.atom_type(j)).name << "\n";
-      std::cout << "d0: " << std::setw(10) << d0 << "\t" << "d: " << std::setw(15) << d << "\n";
+
+      // std::cout << std::left 
+      //           << "protein atom_name: " << std::setw(10) << protein.atom_name(j)
+      //           << " residue: " << std::setw(10) << mudock::get_description(protein.residue_types(j)).name
+      //           << " atom_type: " << std::setw(10) << mudock::get_description(protein.atom_type(j)).name
+      //           << " xtype: " << std::setw(15) << mudock::get_description(xs_prot.x_score_xtool_type(j)).name << "\n";
+      //std::cout << "d0: " << std::setw(10) << d0 << "\t" << "d: " << std::setw(15) << d << "\n";
 
       if (d > DIST_CUTOFF)
         continue;
