@@ -74,7 +74,10 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
   //cycle all ligand atoms
   for (std::size_t i = 0; i < num_ligand_atoms; ++i) {
     // skip atoms that failed typing (XScore: atom.valid <= 0)
-    if (xs_lig.valid(i) == mudock::x_score_validity::invalid) continue;
+    if (xs_lig.valid(i) == mudock::x_score_validity::invalid) {
+      int dummy = 0;
+      continue;
+    }
     if (ligand.atom_type(i) == mudock::xtool_ff::H) continue;
     if (ligand.atom_type(i) == mudock::xtool_ff::Hhb) continue;
     if (ligand.atom_type(i) == mudock::xtool_ff::Hg) continue;
@@ -84,7 +87,21 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
 
     for (std::size_t j = 0; j < num_protein_atoms; ++j) {
       // only binding-pocket atoms are scored (XScore: protein.atom.valid != 2)
-      if (xs_prot.valid(j) != mudock::x_score_validity::pocket) continue;
+      if (xs_prot.valid(j) != mudock::x_score_validity::pocket) {
+        int dummy = 0;
+        if (i == 0){
+          float distance = calculate_distance(ligand.x(i), ligand.y(i), ligand.z(i), protein.x(j), protein.y(j), protein.z(j));
+          //if (distance < 10.0f){
+            std::cout << std::left 
+                      << "protein atom_name: " << std::setw(10) << protein.atom_name(j)
+                      << " residue: " << std::setw(10) << mudock::get_description(protein.residue_types(j)).name
+                      << " atom_type: " << std::setw(10) << mudock::get_description(protein.atom_type(j)).name
+                      << " xtype: " << std::setw(15) << mudock::get_description(xs_prot.x_score_xtool_type(j)).name
+                      << "d: " << std::setw(15) << distance << "\n";
+          //}
+        }
+        continue;
+      }
       if (protein.atom_type(j) == mudock::xtool_ff::H) continue;
       if (protein.atom_type(j) == mudock::xtool_ff::Hhb) continue;
       if (protein.atom_type(j) == mudock::xtool_ff::Hg) continue;
