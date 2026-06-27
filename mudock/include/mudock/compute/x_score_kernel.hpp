@@ -6,64 +6,52 @@
 #include <mudock/type_alias.hpp>
 
 namespace mudock {
-  // TODO check maybe the kernel can be fused togheter with main adt score
-  // May become an issue to keep separate the TU and the CUDA/etc dependencies
+  // X-Score scoring kernel. For now it implements the van der Waals (vdw) term only.
+  //
+  // The kernel mirrors the adt_score_kernel design: it stores raw (device) pointers to
+  // the data prepared by the x_score stage, and the actual computation is provided per
+  // backend through the explicit specialization of operator() (e.g. queue_cpp in
+  // x_score_cpp.cpp).
+  //
+  // The protein atom arrays are constant across the whole batch (a single target), while
+  // the ligand atom arrays are laid out per-ligand with a stride of batch_atoms.
   template<typename queue_type>
     requires std::derived_from<queue_type, queue>
   struct x_score_kernel {
     static constexpr char x_region_name[] = "x_score_kernel";
+
     x_score_kernel(const int scores_per_ligand_,
-                     const int batch_ligands_,
-                     const int batch_atoms_,
-                     const int *__restrict__ num_atoms_b_,
-                     const int *__restrict__ num_rotamers_b_,
-                     const int *__restrict__ num_nonbonds_b_,
-                     const fp_type *__restrict__ x_scratch_b_,
-                     const fp_type *__restrict__ y_scratch_b_,
-                     const fp_type *__restrict__ z_scratch_b_,
-                     const fp_type *__restrict__ vols_b_,
-                     const fp_type *__restrict__ solpars_b_,
-                     const fp_type *__restrict__ charges_b_,
-                     const int *__restrict__ map_offsets_b_,
-                     const int *__restrict__ nonbond_a1_b_,
-                     const int *__restrict__ nonbond_a2_b_,
-                     const fp_type *__restrict__ nonbond_cA_b_,
-                     const fp_type *__restrict__ nonbond_cB_b_,
-                     const int *__restrict__ nonbond_xB_b_,
-                     const fp_type *__restrict__ grid_maps_,
-                     const fp_type *__restrict__ minimum_,
-                     const fp_type *__restrict__ maximum_,
-                     const fp_type *__restrict__ center_,
-                     const int map_index_x_,
-                     const int map_index_xy_,
-                     const int map_index_xyz_,
-                     fp_type *__restrict__ scores_b_,
-                     std::shared_ptr<queue_type> q_)
+                   const int batch_ligands_,
+                   const int batch_atoms_,
+                   const int *__restrict__ num_atoms_b_,
+                   const fp_type *__restrict__ lig_x_b_,
+                   const fp_type *__restrict__ lig_y_b_,
+                   const fp_type *__restrict__ lig_z_b_,
+                   const fp_type *__restrict__ lig_vdw_b_,
+                   const int *__restrict__ lig_scorable_b_,
+                   const int num_prot_atoms_,
+                   const fp_type *__restrict__ prot_x_b_,
+                   const fp_type *__restrict__ prot_y_b_,
+                   const fp_type *__restrict__ prot_z_b_,
+                   const fp_type *__restrict__ prot_vdw_b_,
+                   const int *__restrict__ prot_scorable_b_,
+                   fp_type *__restrict__ scores_b_,
+                   std::shared_ptr<queue_type> q_)
         : scores_per_ligand(scores_per_ligand_),
           batch_ligands(batch_ligands_),
           batch_atoms(batch_atoms_),
           num_atoms_b(num_atoms_b_),
-          num_rotamers_b(num_rotamers_b_),
-          num_nonbonds_b(num_nonbonds_b_),
-          x_scratch_b(x_scratch_b_),
-          y_scratch_b(y_scratch_b_),
-          z_scratch_b(z_scratch_b_),
-          vols_b(vols_b_),
-          solpars_b(solpars_b_),
-          charges_b(charges_b_),
-          map_offsets_b(map_offsets_b_),
-          nonbond_a1_b(nonbond_a1_b_),
-          nonbond_a2_b(nonbond_a2_b_),
-          nonbond_cA_b(nonbond_cA_b_),
-          nonbond_cB_b(nonbond_cB_b_),
-          nonbond_xB_b(nonbond_xB_b_),
-          grid_maps(grid_maps_),
-          minimum(minimum_),
-          maximum(maximum_),
-          center(center_),
-          map_index_x(map_index_x_),
-          map_index_xy(map_index_xy_),
-          map_index_xyz(map_index_xyz_),
+          lig_x_b(lig_x_b_),
+          lig_y_b(lig_y_b_),
+          lig_z_b(lig_z_b_),
+          lig_vdw_b(lig_vdw_b_),
+          lig_scorable_b(lig_scorable_b_),
+          num_prot_atoms(num_prot_atoms_),
+          prot_x_b(prot_x_b_),
+          prot_y_b(prot_y_b_),
+          prot_z_b(prot_z_b_),
+          prot_vdw_b(prot_vdw_b_),
+          prot_scorable_b(prot_scorable_b_),
           scores_b(scores_b_),
           q(q_) {}
 
@@ -77,33 +65,26 @@ namespace mudock {
     ~x_score_kernel() = default;
 
   private:
-
-  // TODO preserve only useful parameters
     const int scores_per_ligand;
     const int batch_ligands;
     const int batch_atoms;
     const int *__restrict__ num_atoms_b;
-    const int *__restrict__ num_rotamers_b;
-    const int *__restrict__ num_nonbonds_b;
-    const fp_type *__restrict__ x_scratch_b;
-    const fp_type *__restrict__ y_scratch_b;
-    const fp_type *__restrict__ z_scratch_b;
-    const fp_type *__restrict__ vols_b;
-    const fp_type *__restrict__ solpars_b;
-    const fp_type *__restrict__ charges_b;
-    const int *__restrict__ map_offsets_b;
-    const int *__restrict__ nonbond_a1_b;
-    const int *__restrict__ nonbond_a2_b;
-    const fp_type *__restrict__ nonbond_cA_b;
-    const fp_type *__restrict__ nonbond_cB_b;
-    const int *__restrict__ nonbond_xB_b;
-    const fp_type *__restrict__ grid_maps;
-    const fp_type *__restrict__ minimum;
-    const fp_type *__restrict__ maximum;
-    const fp_type *__restrict__ center;
-    const int map_index_x;
-    const int map_index_xy;
-    const int map_index_xyz;
+
+    // ligand atom data, strided per ligand by batch_atoms
+    const fp_type *__restrict__ lig_x_b;
+    const fp_type *__restrict__ lig_y_b;
+    const fp_type *__restrict__ lig_z_b;
+    const fp_type *__restrict__ lig_vdw_b;
+    const int *__restrict__ lig_scorable_b;
+
+    // protein atom data, shared across the whole batch (single target)
+    const int num_prot_atoms;
+    const fp_type *__restrict__ prot_x_b;
+    const fp_type *__restrict__ prot_y_b;
+    const fp_type *__restrict__ prot_z_b;
+    const fp_type *__restrict__ prot_vdw_b;
+    const int *__restrict__ prot_scorable_b;
+
     fp_type *__restrict__ scores_b;
     std::shared_ptr<queue_type> q;
   };
