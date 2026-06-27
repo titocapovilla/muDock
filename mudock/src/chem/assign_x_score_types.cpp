@@ -750,6 +750,11 @@ namespace mudock {
       // DATA SAVING
       layer.x_score_xtool_type(i) = assigned_type;
       layer.vdw_radius(i)         = get_description(assigned_type).vdw_radius;
+      // Mirror XScore's Value_Atom: an atom that fails typing (unknown type) is
+      // marked invalid, otherwise it is valid. Pocket promotion happens later in
+      // define_pocket (protein only).
+      layer.valid(i) =
+          (assigned_type == xtool_ff::Un) ? x_score_validity::invalid : x_score_validity::valid;
     }
   }
 
@@ -825,7 +830,10 @@ namespace mudock {
         }
       }
 
-      if(found) continue;
+      if (found) {
+        layer.valid(i) = x_score_validity::valid;
+        continue;
+      }
       //   std::cout << "!!! DEBUG WARNING !!! Invalid residue type detected.\n"
       //             << "Atom index: " << i << "\n"
       //             << "Atom name: " << atom_name << "\n"
@@ -907,6 +915,11 @@ namespace mudock {
         layer.x_score_xtool_type(i) = xtool_ff::Un;
         layer.vdw_radius(i)         = get_description(xtool_ff::Un).vdw_radius;
       }
+
+      // Initial validity (XScore Value_Atom): valid if typed via a fallback
+      // template, invalid if no template matched. Pocket promotion (valid==pocket)
+      // is performed later by define_pocket.
+      layer.valid(i) = found ? x_score_validity::valid : x_score_validity::invalid;
 
       // todo: debugging line shows atoms who's xtool type has been determined via fallback methods
       // std::string res_name_str = (res_enum_val >= 0 && res_enum_val < mudock::num_residues()) 

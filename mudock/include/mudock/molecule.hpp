@@ -49,6 +49,10 @@ namespace mudock {
     // protein-specific fields
     atoms_array_type<residue> atom_residue_types;
     atoms_array_type<std::string> atom_names;
+    // residue sequence number and chain identifier (from the PDB), used to tell
+    // apart distinct residue instances of the same type (e.g. two GLU on a chain).
+    atoms_array_type<int> atom_res_id;
+    atoms_array_type<char> atom_chain;
 
     // ligand-specific fields
     atoms_array_type<xtool_ff> atom_types; //to be tested
@@ -117,6 +121,8 @@ namespace mudock {
     [[nodiscard]] inline auto get_atom_residue_types() const { return make_span(atom_residue_types, atoms_size); }
     [[nodiscard]] inline auto get_atom_name() const { return make_span(atom_names, atoms_size); }
     [[nodiscard]] inline auto get_atom_type() const { return make_span(atom_types, atoms_size); }
+    [[nodiscard]] inline auto get_res_id() const { return make_span(atom_res_id, atoms_size); }
+    [[nodiscard]] inline auto get_chain() const { return make_span(atom_chain, atoms_size); }
 
     // utility functions to get the span of the whole molecule (read only)
     [[nodiscard]] inline auto get_elements() const { return make_span(atom_elements, atoms_size); }
@@ -137,6 +143,8 @@ namespace mudock {
     [[nodiscard]] inline auto& residue_types(const int index) { return atom_residue_types[index]; }
     [[nodiscard]] inline auto& atom_name(const int index) { return atom_names[index]; }
     [[nodiscard]] inline auto& atom_type(const int index) { return atom_types[index]; }
+    [[nodiscard]] inline auto& res_id(const int index) { return atom_res_id[index]; }
+    [[nodiscard]] inline auto& chain(const int index) { return atom_chain[index]; }
 
     // utility functions to get the ref to an atom element (read + write)
     [[nodiscard]] inline auto* autodock_type() { return atom_autodock_type.data(); }
@@ -150,6 +158,8 @@ namespace mudock {
     [[nodiscard]] inline auto* residue_types() { return atom_residue_types.data(); }
     [[nodiscard]] inline auto* atom_name() { return atom_names.data(); }
     [[nodiscard]] inline auto* atom_type() { return atom_types.data(); }
+    [[nodiscard]] inline auto* res_id() { return atom_res_id.data(); }
+    [[nodiscard]] inline auto* chain() { return atom_chain.data(); }
 
     // utility functions to get the ref to an atom element (read only)
     [[nodiscard]] inline const auto& autodock_type(const int index) const {
@@ -165,6 +175,8 @@ namespace mudock {
     [[nodiscard]] inline const auto& residue_types(const int index) const { return atom_residue_types[index]; }
     [[nodiscard]] inline const auto& atom_name(const int index) const { return atom_names[index]; }
     [[nodiscard]] inline const auto& atom_type(const int index) const { return atom_types[index]; }
+    [[nodiscard]] inline const auto& res_id(const int index) const { return atom_res_id[index]; }
+    [[nodiscard]] inline const auto& chain(const int index) const { return atom_chain[index]; }
 
   };
 
@@ -199,6 +211,8 @@ namespace mudock {
     mudock::resize(atom_autodock_type, n_atoms);
     mudock::resize(atom_residue_types, n_atoms);
     mudock::resize(atom_names, n_atoms);
+    mudock::resize(atom_res_id, n_atoms);
+    mudock::resize(atom_chain, n_atoms);
     mudock::resize(atom_types, n_atoms);
     mudock::resize(atom_is_aromatic, n_atoms);
     mudock::resize(atom_charge, n_atoms);
@@ -216,6 +230,8 @@ namespace mudock {
     mudock::remove_atom(z_coordinates, index);
     mudock::remove_atom(atom_residue_types, index);
     mudock::remove_atom(atom_names, index);
+    mudock::remove_atom(atom_res_id, index);
+    mudock::remove_atom(atom_chain, index);
     mudock::remove_atom(atom_types, index);
     mudock::resize(bond_descriptions, index);
     mudock::resize(atom_autodock_type, index);

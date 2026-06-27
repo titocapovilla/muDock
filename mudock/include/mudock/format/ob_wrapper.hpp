@@ -107,10 +107,16 @@ namespace mudock {
           // remove spaces from atom name, e.g. " CA " -> "CA"
           atom_name.erase(std::remove(atom_name.begin(), atom_name.end(), ' '), atom_name.end());
           dest.atom_name(mudock_atom_index) = atom_name;
+          // residue sequence number + chain id, needed to distinguish residue
+          // instances when defining the binding pocket (see define_pocket).
+          dest.res_id(mudock_atom_index) = ob_res->GetNum();
+          dest.chain(mudock_atom_index)  = ob_res->GetChain();
         } else {
           dest.residue_types(mudock_atom_index) = residue::UNKNOWN;
           //TODO: check if we should leave empty string or assign "UNKNOWN" as well
           dest.atom_name(mudock_atom_index) = "UNKNOWN";
+          dest.res_id(mudock_atom_index)    = -1;
+          dest.chain(mudock_atom_index)     = ' ';
         }
       }
 

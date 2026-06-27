@@ -3,6 +3,7 @@
 #include <iostream>
 #include <mudock/chem/elements.hpp>
 #include <mudock/chem/x_score_ligand.hpp>
+#include <mudock/chem/x_score_pocket.hpp>
 #include <mudock/chem/x_score_protein.hpp>
 #include <mudock/chem/x_score_residue_xtool_types.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
@@ -72,7 +73,8 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
 
   //cycle all ligand atoms
   for (std::size_t i = 0; i < num_ligand_atoms; ++i) {
-    // todo: check if atom is valid
+    // skip atoms that failed typing (XScore: atom.valid <= 0)
+    if (xs_lig.valid(i) == mudock::x_score_validity::invalid) continue;
     if (ligand.atom_type(i) == mudock::xtool_ff::H) continue;
     if (ligand.atom_type(i) == mudock::xtool_ff::Hhb) continue;
     if (ligand.atom_type(i) == mudock::xtool_ff::Hg) continue;
@@ -81,7 +83,8 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
     const std::size_t num_protein_atoms = protein.num_atoms();
 
     for (std::size_t j = 0; j < num_protein_atoms; ++j) {
-      //todo check if atom is valid
+      // only binding-pocket atoms are scored (XScore: protein.atom.valid != 2)
+      if (xs_prot.valid(j) != mudock::x_score_validity::pocket) continue;
       if (protein.atom_type(j) == mudock::xtool_ff::H) continue;
       if (protein.atom_type(j) == mudock::xtool_ff::Hhb) continue;
       if (protein.atom_type(j) == mudock::xtool_ff::Hg) continue;
@@ -167,6 +170,10 @@ int main(int argc, char** argv) {
 
       mudock::dynamic_molecule protein = mudock::parser<mudock::dynamic_molecule>(prot_path);
       mudock::x_score_protein xs_prot{protein};
+
+      // Define the binding pocket: promotes nearby protein atoms to validity 'pocket'
+      // so only binding-site atoms are scored (XScore Define_Pocket).
+      mudock::define_pocket(xs_prot, xs_lig, 10.0);
 
       // Print ligand information
       //test_x_score_typing_ligand(xs_lig);
