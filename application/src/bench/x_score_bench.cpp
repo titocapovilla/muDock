@@ -41,17 +41,13 @@ int main(int argc, char* argv[]) {
             input_queue->enqueue(ligand);
           }
         } else {
-          // When the whole input file describes a single ligand we can point the X-Score
-          // typing at the original file (SOURCE_PATH) so it re-reads the authoritative
-          // SYBYL types instead of relying on OpenBabel perception. For multi-record
-          // libraries this is skipped (the per-record types from the parser are used).
-          const bool single_ligand = ligands_description.size() == 1;
+          // Non-ADTMOL2 formats go through OpenBabel perception, which does not preserve the raw
+          // SYBYL token X-Score relies on. The authoritative SYBYL types are carried only by the
+          // native ADTMOL2 reader, so for correct X-Score typing convert ligands to .adtmol2 first.
           for (const auto& description: ligands_description) {
             try {
               auto ligand = std::make_unique<mudock::static_molecule>(
                   mudock::parser<format, mudock::static_molecule>(description));
-              if (single_ligand)
-                ligand->properties.assign(mudock::property_type::SOURCE_PATH, args.ligand_path.string());
               input_queue->enqueue(ligand);
             } catch (...) {}
           }

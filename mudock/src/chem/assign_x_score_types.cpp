@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 #include <mudock/chem/assign_x_score_types.hpp>
+#include <mudock/chem/sybyl_atom_types.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <mudock/molecule/graph.hpp>
 #include <sstream>
@@ -124,63 +125,31 @@ namespace mudock {
   };
 
   //===------------------------------------------------------------------------------------------------------
-  // Reads the original mol2 file (if SOURCE_PATH is provided) and overrides the sybyl
-  // types assigned by OpenBabel. This ensures the correct typing is used for X-Score mapping.
+  // Derives the preliminary X-Tool atom typing from the authoritative SYBYL types parsed by the native
+  // ADTMOL2 reader (molecule.sybyl_type), instead of re-reading the original .mol2 file via SOURCE_PATH.
+  // The native reader preserves the full SYBYL token (no OpenBabel trimming), so this works uniformly for
+  // batched ligands and removes the dependency on the source file. The conversion mirrors the previous
+  // logic: take the canonical SYBYL token (e.g. "C.ar"), drop the dot and feed it to parse_xtool_type
+  // ("Car" -> xtool_ff::Car).
   //===------------------------------------------------------------------------------------------------------
-  static void check_source_path_mol2_forcefield_override(x_score_static_layer& layer) {
-    auto& mol               = layer.get_base_molecule();
-    const auto& source_path = mol.properties.get(property_type::SOURCE_PATH);
-    if (source_path == "N/A") {
-      //todo remove debug line
-      std::cout << "Failed to fetch source path for .mol2 reparsing \n";
-      return;
-    }
+  static void assign_xtool_types_from_sybyl(x_score_static_layer& layer) {
+    auto& mol           = layer.get_base_molecule();
+    const int num_atoms = static_cast<int>(mol.num_atoms());
 
-    const auto input_path = std::filesystem::path{source_path};
-    std::ifstream file(input_path);
-    if (!file.is_open()) {
-      //todo remove debug line
-      std::cout << "Failed open file \n";
-      return;
-    };
-    //todo remove debug line
-    std::cout << "Success in reparsing \n";
+    for (int index = 0; index < num_atoms; ++index) {
+      const auto sybyl = mol.sybyl_type(index);
+      if (sybyl == sybyl_atom_type::UNKNOWN)
+        continue; // no authoritative SYBYL token to override the default perception with
 
-    const std::size_t num_atoms = mol.num_atoms();
-    std::string line;
-    bool in_atom_section = false;
-    int index            = 0;
-
-    while (std::getline(file, line)) {
-      if (line.find("@<TRIPOS>ATOM") != std::string::npos) {
-        in_atom_section = true;
-        continue;
-      } else if (line.find("@<TRIPOS>") != std::string::npos) {
-        if (in_atom_section)
-          break;
-        continue;
+      const auto token = to_string(sybyl); // canonical SYBYL token, e.g. "C.ar"
+      std::string sybyl_str;
+      for (const char c: token) {
+        if (c != '.')
+          sybyl_str += c;
       }
 
-      if (in_atom_section) {
-        std::istringstream iss(line);
-        std::string token;
-        int col = 0;
-        std::string sybyl_str;
-        while (iss >> token) {
-          if (col == 5) { // 6th column (0-indexed) is the SYBYL type
-            for (char c: token) {
-              if (c != '.')
-                sybyl_str += c;
-            }
-            break;
-          }
-          col++;
-        }
-        if (!sybyl_str.empty() && index < static_cast<int>(num_atoms)) {
-          mol.atom_type(index) = parse_xtool_type(sybyl_str);
-          index++;
-        }
-      }
+      if (!sybyl_str.empty())
+        mol.atom_type(index) = parse_xtool_type(sybyl_str);
     }
   }
 
@@ -511,7 +480,7 @@ namespace mudock {
   //===------------------------------------------------------------------------------------------------------
   template<>
   void assign_x_score_types(x_score_static_layer& layer) {
-    check_source_path_mol2_forcefield_override(layer);
+    assign_xtool_types_from_sybyl(layer);
 
     // Retrieve access to the underlying molecule's SoA (Structure of Arrays) data
     const auto& mol             = layer.get_base_molecule();
