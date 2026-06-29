@@ -148,6 +148,12 @@ namespace mudock {
           sybyl_str += c;
       }
 
+      // Some MOL2 files use a non-standard upper-case SYBYL descriptor (e.g. "S.O2" instead of the
+      // canonical "S.o2"). The X-Tool dictionary keys are <element><lower-case descriptor>, so lower
+      // the characters after the element's first letter before the lookup ("SO2" -> "So2").
+      for (std::size_t i = 1; i < sybyl_str.size(); ++i)
+        sybyl_str[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(sybyl_str[i])));
+
       if (!sybyl_str.empty())
         mol.atom_type(index) = parse_xtool_type(sybyl_str);
     }

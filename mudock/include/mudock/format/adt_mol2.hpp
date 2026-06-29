@@ -163,10 +163,10 @@ namespace mudock {
               std::string adt;
               std::string residue_name;
               std::string sybyl_type;
-              std::string residue_type_name;
+              // std::string residue_type_name;
 
               stream >> atom_id >> atom_name >> x >> y >> z >> sybyl_type >> residue_id >> residue_name >>
-                  residue_type_name >> adt >> charge >> is_aromatic;
+                  /*residue_type_name >>*/ adt >> charge >> is_aromatic;
 
               if (!stream) {
                 throw std::runtime_error("Invalid ADT-MOL2 atom record: " + line);
@@ -189,7 +189,7 @@ namespace mudock {
 
               molecule.residue_id(atom_index)        = residue_id;
               molecule.residue_name(atom_index)      = residue_name;
-              molecule.atom_residue_type(atom_index) = parse_residue_type(residue_type_name);
+              // molecule.atom_residue_type(atom_index) = parse_residue_type(residue_type_name);
 
               molecule.atom_name(atom_index)  = atom_name;
               molecule.sybyl_type(atom_index) = parsed_sybyl_type;
