@@ -15,6 +15,8 @@ list(
   "${header_path}/${header_prefix}/chem/autodock_layer.hpp"
   "${header_path}/${header_prefix}/chem/autodock_ligand.hpp"
   "${header_path}/${header_prefix}/chem/autodock_parameters.hpp"
+  "${header_path}/${header_prefix}/chem/sybyl_atom_types.hpp"
+  "${header_path}/${header_prefix}/chem/residue_types.hpp"
   "${header_path}/${header_prefix}/chem/autodock_protein.hpp"
   "${header_path}/${header_prefix}/chem/autodock_types.hpp"
   "${header_path}/${header_prefix}/chem/bond_types.hpp"
@@ -49,6 +51,8 @@ list(
   "${header_path}/${header_prefix}/compute/docking.hpp"
   "${header_path}/${header_prefix}/compute/genetic.hpp"
   "${header_path}/${header_prefix}/compute/transform.hpp"
+  "${header_path}/${header_prefix}/compute/algorithm.hpp"
+  "${header_path}/${header_prefix}/compute/pipeline_selector.hpp"
   "${header_path}/${header_prefix}/compute/geometric_transform.hpp"
   "${header_path}/${header_prefix}/compute/x_score.hpp"
   "${header_path}/${header_prefix}/compute/x_score_kernel.hpp"
@@ -89,6 +93,7 @@ list(
   "${header_path}/${header_prefix}/molecule/property_table.hpp"
   "${header_path}/${header_prefix}/tbb_implementation/stream_filter.hpp"
   "${header_path}/${header_prefix}/tbb_implementation/parser_filter.hpp"
+  "${header_path}/${header_prefix}/tbb_implementation/runtime_services.hpp"
   "${header_path}/${header_prefix}/tbb_implementation/tbb_pipeline.hpp"
   "${header_path}/${header_prefix}/batch.hpp"
   "${header_path}/${header_prefix}/chem.hpp"
@@ -115,6 +120,8 @@ list(
   "${source_path}/chem/autodock_babel_types.cpp"
   "${source_path}/chem/autodock_protein.cpp"
   "${source_path}/chem/autodock_ligand.cpp"
+  "${source_path}/chem/sybyl_atom_types.cpp"
+  "${source_path}/chem/residue_types.cpp"
   "${source_path}/chem/autodock_types.cpp"
   "${source_path}/chem/bond_types.cpp"
   "${source_path}/chem/autodock_grid_types.cpp"
@@ -123,6 +130,7 @@ list(
   "${source_path}/chem/x_score_residue_xtool_types.cpp"
   "${source_path}/chem/x_score_xtool_types.cpp"
   "${source_path}/compute/parse_ids.cpp"
+  "${source_path}/compute/algorithm.cpp"
   "${source_path}/format/dot.cpp"
   "${source_path}/format/mol2.cpp"
   "${source_path}/format/adt_mol2.cpp"
@@ -141,18 +149,19 @@ list(
   "${source_path}/cpp_implementation/adt_score_cpp.cpp"
   "${source_path}/cpp_implementation/genetic_cpp.cpp"
   "${source_path}/cpp_implementation/x_score_cpp.cpp"
-  "${source_path}/tbb_implementation/stream_filter.cpp"
-  "${source_path}/tbb_implementation/parser_filter.cpp"
-  "${source_path}/tbb_implementation/tbb_pipeline.cpp"
+  "${source_path}/tbb_implementation/runtime_services.cpp"
 )
 
 if(MUDOCK_ENABLE_MPI)
   list(
     APPEND
     header_files
+    "${header_path}/${header_prefix}/mpi_implementation/byte_range.hpp"
+    "${header_path}/${header_prefix}/mpi_implementation/stream_partition.hpp"
+    "${header_path}/${header_prefix}/mpi_implementation/distributed_ranges.hpp"
     "${header_path}/${header_prefix}/mpi_implementation/utilities.hpp"
     )
-endif()    
+endif()
 
 if(MUDOCK_ENABLE_GH)
   list(APPEND source_files
@@ -292,9 +301,7 @@ set_target_properties(
              CXX_STANDARD_REQUIRED ON
              CXX_EXTENSIONS OFF
              POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(libmudock PUBLIC Microsoft.GSL::GSL Boost::graph
-                                       ${OpenBabel3_LIBRARIES} TBB::tbb)
-target_include_directories(libmudock SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
+target_link_libraries(libmudock PUBLIC Boost::graph ${OpenBabel3_LIBRARIES} TBB::tbb)
 if(NOT MUDOCK_ENABLE_OMP)
   target_compile_options(libmudock PRIVATE -Wno-unknown-pragmas)
 endif()
@@ -312,11 +319,25 @@ endif()
 if(MUDOCK_ENABLE_KERNEL_LOCK)
   target_compile_definitions(libmudock PUBLIC MUDOCK_KERNEL_LOCK)
 endif()
-if(NOT MUDOCK_ADT_BUCKET_OVERRIDE STREQUAL "")
-  target_compile_definitions(libmudock PUBLIC MUDOCK_ADT_BUCKET_OVERRIDE=${MUDOCK_ADT_BUCKET_OVERRIDE})
+if(NOT MUDOCK_STAGE_BUCKET_OVERRIDE STREQUAL "")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_STAGE_BUCKET_OVERRIDE=${MUDOCK_STAGE_BUCKET_OVERRIDE})
 endif()
-if(NOT MUDOCK_ADT_BUCKET_MULTIPLE_OVERRIDE STREQUAL "")
-  target_compile_definitions(libmudock PUBLIC MUDOCK_ADT_BUCKET_MULTIPLE_OVERRIDE=${MUDOCK_ADT_BUCKET_MULTIPLE_OVERRIDE})
+if(NOT MUDOCK_STAGE_BUCKET_MULTIPLE_OVERRIDE STREQUAL "")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_STAGE_BUCKET_MULTIPLE_OVERRIDE=${MUDOCK_STAGE_BUCKET_MULTIPLE_OVERRIDE})
+endif()
+if(MUDOCK_STAGE_BUCKET_POLICY STREQUAL "MAX_UTILIZATION")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_STAGE_BUCKET_POLICY_MAX_UTILIZATION)
+elseif(MUDOCK_STAGE_BUCKET_POLICY STREQUAL "SM_ALIGNED")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_STAGE_BUCKET_POLICY_SM_ALIGNED)
+endif()
+if(MUDOCK_GENETIC_BUCKET_COMBINE STREQUAL "SCORE_ONLY")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_GENETIC_BUCKET_COMBINE_SCORE_ONLY)
+elseif(MUDOCK_GENETIC_BUCKET_COMBINE STREQUAL "GEOM_ONLY")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_GENETIC_BUCKET_COMBINE_GEOM_ONLY)
+elseif(MUDOCK_GENETIC_BUCKET_COMBINE STREQUAL "LCM")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_GENETIC_BUCKET_COMBINE_LCM)
+elseif(NOT MUDOCK_GENETIC_BUCKET_COMBINE STREQUAL "MIN")
+  message(FATAL_ERROR "MUDOCK_GENETIC_BUCKET_COMBINE must be one of: MIN, SCORE_ONLY, GEOM_ONLY, LCM")
 endif()
 if(NOT MUDOCK_UNROLL_FACTOR STREQUAL "")
   target_compile_definitions(libmudock PUBLIC MUDOCK_UNROLL_FACTOR=${MUDOCK_UNROLL_FACTOR})
@@ -324,13 +345,16 @@ endif()
 if(MUDOCK_DISABLE_UNROLL)
   target_compile_definitions(libmudock PUBLIC MUDOCK_DISABLE_UNROLL)
 endif()
+if(MUDOCK_ENABLE_STAGE_BUCKET_TRACE)
+  target_compile_definitions(libmudock PUBLIC MUDOCK_ENABLE_STAGE_BUCKET_TRACE)
+endif()
 
-if(MUDOCK_BUCKET_LEVEL STREQUAL "EXTREME")
-  target_compile_definitions(libmudock PUBLIC MUDOCK_BUCKET_EXTREME)
-elseif(MUDOCK_BUCKET_LEVEL STREQUAL "LARGE")
-  target_compile_definitions(libmudock PUBLIC MUDOCK_BUCKET_LARGE)
-elseif(MUDOCK_BUCKET_LEVEL STREQUAL "MEDIUM")
-  target_compile_definitions(libmudock PUBLIC MUDOCK_BUCKET_MEDIUM)
+if(MUDOCK_ATOM_CLUSTER_LEVEL STREQUAL "EXTREME")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_ATOM_CLUSTER_LEVEL_EXTREME)
+elseif(MUDOCK_ATOM_CLUSTER_LEVEL STREQUAL "LARGE")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_ATOM_CLUSTER_LEVEL_LARGE)
+elseif(MUDOCK_ATOM_CLUSTER_LEVEL STREQUAL "MEDIUM")
+  target_compile_definitions(libmudock PUBLIC MUDOCK_ATOM_CLUSTER_LEVEL_MEDIUM)
 endif()
 
 # Profiling
@@ -371,7 +395,7 @@ if(MUDOCK_ENABLE_FAST)
   else()
     message(
       STATUS
-        "MuDock does not optimize SIMD auto-vectorization with {CMAKE_C_COMPILER_ID}"
+        "MuDock does not optimize SIMD auto-vectorization with ${CMAKE_C_COMPILER_ID}"
     )
   endif()
 
@@ -490,21 +514,13 @@ if(MUDOCK_ENABLE_SYCL)
                  sycl_objects)
   target_sources(libmudock PRIVATE "${sycl_objects}")
   add_dependencies(libmudock sycl_targets)
-  if(${SYCL_COMPILER} STREQUAL "AdaptiveCpp")
-
-    find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(libmudock PRIVATE AdaptiveCpp::acpp-rt Boost::fiber
-                                            CUDA::cudart)
-  elseif(${SYCL_COMPILER} STREQUAL "oneAPI")
-    target_link_directories(libmudock PUBLIC "${LLVM_LIBRARY_DIRS}")
-    target_link_libraries(libmudock PRIVATE sycl)
-  endif()
+  target_link_directories(libmudock PUBLIC "${LLVM_LIBRARY_DIRS}")
+  target_link_libraries(libmudock PRIVATE sycl)
 endif()
 
 if(MUDOCK_ENABLE_OMP)
   target_link_libraries(libmudock PRIVATE OpenMP::OpenMP_CXX)
-  target_compile_options(libmudock
-                               PRIVATE "-fopenmp")
+  target_compile_options(libmudock PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fopenmp>)
 endif()
 
 # ##############################################################################

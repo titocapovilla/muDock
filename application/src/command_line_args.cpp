@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <iostream>
 #include <optional>
+#include <stdexcept>
+#include <string>
 
 command_line_arguments parse_command_line_arguments(const int argc, char* argv[]) {
   namespace po = boost::program_options;
@@ -14,11 +16,13 @@ command_line_arguments parse_command_line_arguments(const int argc, char* argv[]
   std::size_t seed{};
   double time_limit_sec{};
   double observer_sec{};
-  arguments_description.add_options()("help", "print this help message");
-  arguments_description.add_options()("protein",
+  std::string search_name = std::string{to_string(args.search)};
+  std::string score_name  = std::string{to_string(args.scoring)};
+  arguments_description.add_options()("help,h", "print this help message");
+  arguments_description.add_options()("protein,p",
                                       po::value(&args.protein_path)->default_value(args.protein_path),
                                       "Path to the protein file (in PDB)");
-  arguments_description.add_options()("ligand",
+  arguments_description.add_options()("ligand,l",
                                       po::value(&args.ligand_path)->default_value(args.ligand_path),
                                       "Path to the ligands file (in MOL2)");
   arguments_description.add_options()(
@@ -29,10 +33,15 @@ command_line_arguments parse_command_line_arguments(const int argc, char* argv[]
       "time_limit_sec",
       po::value(&time_limit_sec),
       "Optional benchmark time limit in seconds; when reached, pending input ligands are discarded");
-  arguments_description.add_options()(
-      "observer",
-      po::value(&observer_sec),
-      "Optional throughput observer interval in seconds");
+  arguments_description.add_options()("observer",
+                                      po::value(&observer_sec),
+                                      "Optional throughput observer interval in seconds");
+  arguments_description.add_options()("search",
+                                      po::value(&search_name)->default_value(search_name),
+                                      "Search algorithm to apply: none|genetic");
+  arguments_description.add_options()("score",
+                                      po::value(&score_name)->default_value(score_name),
+                                      "Scoring function to apply: adt");
   // define the knobs command line arguments
   po::options_description knobs_description("Virtual Screening Knobs");
   knobs_description.add_options()(
@@ -60,6 +69,10 @@ command_line_arguments parse_command_line_arguments(const int argc, char* argv[]
       "bytes_per_token",
       po::value(&args.knobs.max_bytes_per_token)->default_value(args.knobs.max_bytes_per_token),
       "Max number of bytes per token in the TBB pipeline");
+  knobs_description.add_options()(
+      "queue_size",
+      po::value(&args.knobs.max_tbb_queue_size)->default_value(args.knobs.max_tbb_queue_size),
+      "Max number of ligands buffered in the TBB input/output queues");
   // parse them
   po::options_description all("Allowed Options");
   all.add(arguments_description).add(knobs_description);
@@ -68,26 +81,33 @@ command_line_arguments parse_command_line_arguments(const int argc, char* argv[]
 
   // handle the help message
   if (vm.count("help") > 0) {
-    std::cout << "This application reads from the standard input a ligand library in mol2 format. It will"
+    std::cout << "This application reads ligands from --ligand/-l and prints one score per output line."
               << std::endl;
-    std::cout << "print on the standard output the score of each of them" << std::endl;
     std::cout << std::endl;
-    std::cout << "USAGE: " << argv[0] << " --protein " << args.protein_path << " --ligand "
-              << args.ligand_path << " --use " << use_cpu_conf << " [KNOBS] " << std::endl;
+    std::cout << "USAGE: " << argv[0] << " --protein|-p " << args.protein_path << " --ligand|-l "
+              << args.ligand_path << " --use " << use_cpu_conf
+              << " [--search none|genetic] [--score adt] [MORE_CONFIGS...] [KNOBS] " << std::endl;
     std::cout << std::endl;
     std::cout << arguments_description << std::endl;
     std::cout << std::endl;
     std::cout << knobs_description << std::endl;
     std::cout << std::endl;
-    std::cout << "The use flag is basically a list that describes which implementation the user" << std::endl
-              << "would like to use and on which hardware it want to be run" << std::endl
+    std::cout << "Pipeline selection:" << std::endl
+              << "  --search none --score adt      adt scoring only" << std::endl
+              << "  --search genetic --score adt   genetic + adt" << std::endl;
+    std::cout << std::endl;
+    std::cout << "The use flag accepts one or more configurations that describe which implementation"
+              << std::endl
+              << "should run on which hardware." << std::endl
               << "It has the following grammar: " << std::endl
-              << "  CONFIGURATION  -> IMPL_DESC[;IMPL_DESC]*" << std::endl
-              << "  IMPL_DESC      -> IMPLEMENTATION:DEVICE:IDS" << std::endl
-              << "  IMPLEMENTATION -> CUDA|CPP" << std::endl
+              << "  --use CONFIGURATION [CONFIGURATION ...]" << std::endl
+              << "  CONFIGURATION  -> IMPLEMENTATION:DEVICE:IDS[:WORKERS][:MEMORY_BYTES]" << std::endl
+              << "  IMPLEMENTATION -> backend token such as CPP, CUDA, HIP, SYCL, GH, XSIMD" << std::endl
               << "  DEVICE         -> CPU|GPU" << std::endl
               << "  IDS            -> GROUP[,GROUP]*" << std::endl
               << "  GROUP          -> <device_id>|<device_id>-<device_id>" << std::endl
+              << "  WORKERS        -> number of workers per GPU device (optional)" << std::endl
+              << "  MEMORY_BYTES   -> per-device bucket memory budget in bytes (optional)" << std::endl
               << "The <device_id> number is directly related to the device id, while the option" << std::endl
               << "<device_id>-<device_id> can be used to specify a range" << std::endl;
     exit(EXIT_SUCCESS);
@@ -104,5 +124,7 @@ command_line_arguments parse_command_line_arguments(const int argc, char* argv[]
   if (vm.count("observer")) {
     args.observer = std::optional<double>{observer_sec};
   }
+  args.search  = mudock::parse_search_algorithm(search_name);
+  args.scoring = mudock::parse_scoring_function(score_name);
   return args;
 }

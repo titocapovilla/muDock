@@ -4,6 +4,9 @@
 #include <mudock/chem/autodock_types.hpp>
 #include <mudock/chem/residue.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
+#include <mudock/chem/residue_types.hpp>
+#include <mudock/chem/sybyl_atom_types.hpp>
+#include <mudock/format/ob_helper.hpp>
 #include <mudock/molecule.hpp>
 #include <openbabel/atom.h>
 #include <openbabel/bond.h>
@@ -72,21 +75,38 @@ namespace mudock {
         throw std::runtime_error("Number of atoms or bonds exceeding static storage");
       }
     }
-    dest.resize(num_atoms, num_bonds);
+    dest.resize(static_cast<int>(num_atoms), static_cast<int>(num_bonds));
 
     // TODO check charges
-    size_t mudock_atom_index{0};
-    std::unordered_map<unsigned int, int> index_translator;
+    int mudock_atom_index{0};
+    std::unordered_map<unsigned int, std::size_t> index_translator;
+
     OpenBabel::OBTypeTable ttab;
     ttab.SetFromType("INT");
     // TODO add flags to customize this value
     ttab.SetToType("XYZ");
+
+    OpenBabel::OBTypeTable sybyl_table;
+    sybyl_table.SetFromType("INT");
+    sybyl_table.SetToType("SYB");
+
     [[maybe_unused]] unsigned long max_atom_index{0};
     for (auto atom_it = source->BeginAtoms(); atom_it < source->EndAtoms(); ++atom_it) {
-      const auto atom         = *atom_it;
-      const auto atom_id      = atom->GetId();
-      const auto atom_type    = atom->GetType();
+      const auto atom      = *atom_it;
+      const auto atom_id   = atom->GetId();
+      const auto atom_type = atom->GetType();
+      std::string ob_type  = atom->GetType();
+
       const auto atom_element = parse_element_symbol(ttab.Translate(atom_type));
+      const auto sybyl_type   = parse_sybyl_atom_type(sybyl_table.Translate(ob_type));
+
+      dest.atom_name(mudock_atom_index)  = get_ob_atom_name(atom);
+      dest.sybyl_type(mudock_atom_index) = sybyl_type;
+
+      dest.residue_id(mudock_atom_index)        = get_ob_residue_id(atom);
+      dest.residue_name(mudock_atom_index)      = get_ob_residue_name(atom);
+      dest.atom_residue_type(mudock_atom_index) = parse_residue_type(dest.residue_name(mudock_atom_index));
+
       // Get which atoms are aromatic
       dest.elements(mudock_atom_index) = atom_element;
       dest.x(mudock_atom_index)        = static_cast<fp_type>(atom->GetX());
@@ -94,7 +114,7 @@ namespace mudock {
       dest.z(mudock_atom_index)        = static_cast<fp_type>(atom->GetZ());
       // if constexpr (std::derived_from<molecule_type, autodock_static_layer> ||
       //               std::derived_from<molecule_type, autodock_dynamic_layer>) {
-      dest.charge(mudock_atom_index)      = atom->GetPartialCharge();
+      dest.charge(mudock_atom_index)      = static_cast<fp_type>(atom->GetPartialCharge());
       dest.is_aromatic(mudock_atom_index) = atom->IsAromatic();
       // }
 
@@ -132,19 +152,19 @@ namespace mudock {
       max_atom_index = std::max(max_atom_index, atom_id);
     }
     // Verify that there are no gaps in molecule indexes
-    assert(((max_atom_index + 1) == num_atoms) && (num_atoms == mudock_atom_index));
+    assert(((max_atom_index + 1) == num_atoms) && (static_cast<int>(num_atoms) == mudock_atom_index));
 
     // fill the bond information
-    auto mudock_bond_index = int{0};
+    int mudock_bond_index{0};
     for (auto bond_it = source->BeginBonds(); bond_it < source->EndBonds(); ++bond_it) {
-      const auto bond          = *bond_it;
-      const int atom_id_source = bond->GetBeginAtomIdx() - 1;
-      const int atom_id_dest   = bond->GetEndAtomIdx() - 1;
-      auto& mudock_bond        = dest.bonds(mudock_bond_index);
-      mudock_bond.source       = index_translator.at(atom_id_source);
-      mudock_bond.dest         = index_translator.at(atom_id_dest);
-      mudock_bond.type         = parse_ob_bond_type(*bond);
-      mudock_bond.can_rotate   = check_rotor_bond(*bond);
+      const auto bond                  = *bond_it;
+      const std::size_t atom_id_source = bond->GetBeginAtomIdx() - 1;
+      const std::size_t atom_id_dest   = bond->GetEndAtomIdx() - 1;
+      auto& mudock_bond                = dest.bonds(mudock_bond_index);
+      mudock_bond.source     = static_cast<int>(index_translator.at(static_cast<int>(atom_id_source)));
+      mudock_bond.dest       = static_cast<int>(index_translator.at(static_cast<int>(atom_id_dest)));
+      mudock_bond.type       = parse_ob_bond_type(*bond);
+      mudock_bond.can_rotate = check_rotor_bond(*bond);
       ++mudock_bond_index;
     }
 
@@ -184,7 +204,7 @@ namespace mudock {
     std::vector<OpenBabel::OBAtom*> ob_atoms;
     ob_atoms.reserve(natoms);
 
-    for (size_t i = 0; i < natoms; ++i) {
+    for (int i = 0; i < static_cast<int>(natoms); ++i) {
       OpenBabel::OBAtom* a = mol.NewAtom(); // creates atom with new index (1-based)
       a->SetAtomicNum(element_to_atomic_num(src.elements(i)));
       a->SetVector(src.x(i), src.y(i), src.z(i));
