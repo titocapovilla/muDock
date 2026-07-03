@@ -15,11 +15,11 @@
 
 namespace mudock {
 
-  //===------------------------------------------------------------------------------------------------------
+
   // Helper predicates for neighbor classification, mirroring XScore's Find_A_Group logic.
   // XScore checks neighbor SYBYL type strings (e.g. type[0]=='H', type=="F", type[0]=='N').
   // Here we check the equivalent xtool_ff enum values assigned by ob_wrapper.
-  //===------------------------------------------------------------------------------------------------------
+
 
   // Returns true if the neighbor xtool_ff type represents a hydrogen atom.
   // Mirrors XScore: group.neib[i].type[0]=='H'
@@ -112,10 +112,10 @@ namespace mudock {
     }
   }
 
-  //===------------------------------------------------------------------------------------------------------
+
   // Equivalent to XScore's Find_A_Group — counts neighbor environment properties.
   // Only the fields used by Get_XTOOL_Type are computed (num_h, num_nonh, num_hetero, is_bonded_to_ON).
-  //===------------------------------------------------------------------------------------------------------
+
   struct atom_environment {
     int num_h      = 0;
     int num_nonh   = 0;
@@ -124,42 +124,22 @@ namespace mudock {
     bool is_bonded_to_ON = false;
   };
 
-  //===------------------------------------------------------------------------------------------------------
+
   // Derives the preliminary X-Tool atom typing from the authoritative SYBYL types parsed by the native
   // ADTMOL2 reader (molecule.sybyl_type), instead of re-reading the original .mol2 file via SOURCE_PATH.
   // The native reader preserves the full SYBYL token (no OpenBabel trimming), so this works uniformly for
-  // batched ligands and removes the dependency on the source file. The conversion mirrors the previous
-  // logic: take the canonical SYBYL token (e.g. "C.ar"), drop the dot and feed it to parse_xtool_type
-  // ("Car" -> xtool_ff::Car).
-  //===------------------------------------------------------------------------------------------------------
+  // batched ligands and removes the dependency on the source file. UNKNOWN (and every other unsupported
+  // type) maps to xtool_ff::Un via the table, so no atom is silently mistyped as sp3 carbon (xtool_ff::C3
+  // == 0) and counted as valid.
   static void assign_xtool_types_from_sybyl(x_score_static_layer& layer) {
     auto& mol           = layer.get_base_molecule();
     const int num_atoms = static_cast<int>(mol.num_atoms());
 
-    for (int index = 0; index < num_atoms; ++index) {
-      const auto sybyl = mol.sybyl_type(index);
-      if (sybyl == sybyl_atom_type::UNKNOWN)
-        continue; // no authoritative SYBYL token to override the default perception with
-
-      const auto token = to_string(sybyl); // canonical SYBYL token, e.g. "C.ar"
-      std::string sybyl_str;
-      for (const char c: token) {
-        if (c != '.')
-          sybyl_str += c;
-      }
-
-      // Some MOL2 files use a non-standard upper-case SYBYL descriptor (e.g. "S.O2" instead of the
-      // canonical "S.o2"). The X-Tool dictionary keys are <element><lower-case descriptor>, so lower
-      // the characters after the element's first letter before the lookup ("SO2" -> "So2").
-      for (std::size_t i = 1; i < sybyl_str.size(); ++i)
-        sybyl_str[i] = static_cast<char>(std::tolower(static_cast<unsigned char>(sybyl_str[i])));
-
-      if (!sybyl_str.empty())
-        mol.atom_type(index) = parse_xtool_type(sybyl_str);
-    }
+    for (int index = 0; index < num_atoms; ++index)
+      mol.atom_type(index) = xtool_type_from_sybyl(mol.sybyl_type(index));
   }
 
-  //===------------------------------------------------------------------------------------------------------
+
   // XScore-compatible aromatic ring detection.
   //
   // OpenBabel's IsAromatic() does NOT match XScore's Detect_Aromatic_Rings().
@@ -173,7 +153,7 @@ namespace mudock {
   //   5. Mark all atoms in aromatic rings as ring=2
   //
   // This implementation ports that algorithm to mudock's graph infrastructure.
-  //===------------------------------------------------------------------------------------------------------
+
 
   // Check if an atom's SYBYL type qualifies as a pi contributor in a 6-membered aromatic ring.
   // XScore Aromatic_Ring_Check_6: C.ar, N.ar, C.2, N.2 each contribute 1 pi electron.
@@ -479,11 +459,11 @@ namespace mudock {
     return xscore_aromatic;
   }
 
-  //===------------------------------------------------------------------------------------------------------
+
   // LIGAND SPECIALIZATION
   // Mirrors XScore's Get_XTOOL_Type 1:1 by predicating on xtool_ff types (SYBYL equivalents)
   // stored in mol.atom_type(i) by the ob_wrapper, rather than on periodic table elements.
-  //===------------------------------------------------------------------------------------------------------
+
   template<>
   void assign_x_score_types(x_score_static_layer& layer) {
     assign_xtool_types_from_sybyl(layer);
@@ -733,14 +713,14 @@ namespace mudock {
     }
   }
 
-  //===------------------------------------------------------------------------------------------------------
+
   // Converts old PDB hydrogen naming convention to modern PDB v3.
   // Old convention: digit prefix, e.g. "1HD2", "2HE2", "1HG1"
   // Modern convention: digit suffix, e.g. "HD21", "HE22", "HG11"
   // XScore's PDB parser handles both conventions; this normalization
   // allows our template lookup to match atoms from old-format PDB files.
   // Returns empty string if the name is not in old-convention format.
-  //===------------------------------------------------------------------------------------------------------
+
   static std::string normalize_old_pdb_hydrogen_name(std::string_view name) {
     // Old convention: first char is a digit, remaining chars are the atom name
     // e.g. "1HD2" → leading '1' + "HD2" → "HD2" + '1' → "HD21"

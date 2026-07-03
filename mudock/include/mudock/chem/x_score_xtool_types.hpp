@@ -11,6 +11,11 @@
 
 namespace mudock {
 
+  // Forward declaration: the SYBYL -> X-Tool table below is keyed by this enum. Declared here (rather
+  // than including the full sybyl header) to keep this generated header lightweight; the definition in
+  // x_score_xtool_types.cpp includes chem/sybyl_atom_types.hpp for the concrete values.
+  enum class sybyl_atom_type : int;
+
   // List of all known atoms for X-TOOL force field
   enum class xtool_ff : int {
 
@@ -185,4 +190,10 @@ namespace mudock {
   }
 
   xtool_ff parse_xtool_type(const std::string_view symbol);
+
+  // Preliminary X-Tool force-field type for an authoritative SYBYL atom type. Data-driven replacement
+  // for the old "to_string(sybyl) -> strip '.' -> lower-case -> parse_xtool_type" round-trip. Returns
+  // xtool_ff::Un for UNKNOWN, pseudo-atoms and elements without an X-Tool parameter, so unsupported
+  // atoms are left untyped (and later flagged invalid) instead of throwing.
+  xtool_ff xtool_type_from_sybyl(sybyl_atom_type type);
 } // namespace mudock

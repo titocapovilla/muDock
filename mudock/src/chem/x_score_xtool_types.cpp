@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <mudock/chem/sybyl_atom_types.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <stdexcept>
 
@@ -8,6 +9,79 @@
 //===------------------------------------------------------------------------------------------------------
 
 namespace mudock {
+  namespace {
+    // SYBYL -> X-Tool mapping, expressed once as a table indexed by the sybyl_atom_type value (mirroring
+    // SYBYL_ATOM_TYPE_DICTIONARY / XTOOL_FF_DICTIONARY). Every entry defaults to xtool_ff::Un, so any SYBYL
+    // type without an X-Tool equivalent (UNKNOWN, pseudo-atoms, unsupported elements) is left untyped.
+    constexpr auto make_sybyl_to_xtool_table() {
+      std::array<xtool_ff, num_sybyl_atom_types()> table{};
+      table.fill(xtool_ff::Un); // xtool_ff::C3 == 0, so an unset entry must be explicitly Un, not value-init.
+
+      const auto set = [&table](sybyl_atom_type s, xtool_ff x) { table[static_cast<std::size_t>(s)] = x; };
+
+      set(sybyl_atom_type::H, xtool_ff::H);
+
+      set(sybyl_atom_type::C_1, xtool_ff::C1);
+      set(sybyl_atom_type::C_2, xtool_ff::C2);
+      set(sybyl_atom_type::C_3, xtool_ff::C3);
+      set(sybyl_atom_type::C_ar, xtool_ff::Car);
+      set(sybyl_atom_type::C_cat, xtool_ff::Ccat);
+
+      set(sybyl_atom_type::N_1, xtool_ff::N1);
+      set(sybyl_atom_type::N_2, xtool_ff::N2);
+      set(sybyl_atom_type::N_3, xtool_ff::N3);
+      set(sybyl_atom_type::N_4, xtool_ff::N4);
+      set(sybyl_atom_type::N_ar, xtool_ff::Nar);
+      set(sybyl_atom_type::N_am, xtool_ff::Nam);
+      set(sybyl_atom_type::N_pl3, xtool_ff::Npl3);
+
+      set(sybyl_atom_type::O_2, xtool_ff::O2);
+      set(sybyl_atom_type::O_3, xtool_ff::O3);
+      set(sybyl_atom_type::O_co2, xtool_ff::Oco2);
+
+      set(sybyl_atom_type::P_3, xtool_ff::P3);
+
+      set(sybyl_atom_type::S_2, xtool_ff::S2);
+      set(sybyl_atom_type::S_3, xtool_ff::S3);
+      set(sybyl_atom_type::S_o, xtool_ff::So);
+      set(sybyl_atom_type::S_o2, xtool_ff::So2);
+      set(sybyl_atom_type::S_O, xtool_ff::So);   // non-standard upper-case descriptor "S.O"
+      set(sybyl_atom_type::S_O2, xtool_ff::So2); // non-standard upper-case descriptor "S.O2"
+
+      set(sybyl_atom_type::F, xtool_ff::F);
+      set(sybyl_atom_type::Cl, xtool_ff::Cl);
+      set(sybyl_atom_type::Br, xtool_ff::Br);
+      set(sybyl_atom_type::I, xtool_ff::I);
+
+      set(sybyl_atom_type::Si, xtool_ff::Si);
+
+      // Metal / ion element-symbol fallbacks that carry an X-Tool parameter.
+      set(sybyl_atom_type::Li, xtool_ff::Li);
+      set(sybyl_atom_type::Na, xtool_ff::Na);
+      set(sybyl_atom_type::K, xtool_ff::K);
+      set(sybyl_atom_type::Mg, xtool_ff::Mg);
+      set(sybyl_atom_type::Ca, xtool_ff::Ca);
+      set(sybyl_atom_type::Mn, xtool_ff::Mn);
+      set(sybyl_atom_type::Fe, xtool_ff::Fe);
+      set(sybyl_atom_type::Co, xtool_ff::Co);
+      set(sybyl_atom_type::Ni, xtool_ff::Ni);
+      set(sybyl_atom_type::Cu, xtool_ff::Cu);
+      set(sybyl_atom_type::Zn, xtool_ff::Zn);
+      set(sybyl_atom_type::Cd, xtool_ff::Cd);
+      set(sybyl_atom_type::Hg, xtool_ff::Hg);
+      set(sybyl_atom_type::Al, xtool_ff::Al);
+      set(sybyl_atom_type::U, xtool_ff::U);
+
+      return table;
+    }
+
+    constexpr auto SYBYL_TO_XTOOL_TABLE = make_sybyl_to_xtool_table();
+  } // namespace
+
+  xtool_ff xtool_type_from_sybyl(const sybyl_atom_type type) {
+    return SYBYL_TO_XTOOL_TABLE[static_cast<std::size_t>(type)];
+  }
+
   xtool_ff parse_xtool_type(const std::string_view symbol) {
     std::string_view search_symbol = symbol;
     

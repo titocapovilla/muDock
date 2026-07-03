@@ -92,9 +92,14 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
         if (i == 0){
           float distance = calculate_distance(ligand.x(i), ligand.y(i), ligand.z(i), protein.x(j), protein.y(j), protein.z(j));
           //if (distance < 10.0f){
+            auto res_type = protein.residue_types(j);
+            std::string_view res_name = "UNKNOWN";
+            if (static_cast<int>(res_type) >= 0 && static_cast<int>(res_type) < mudock::num_residues()) {
+              res_name = mudock::get_description(res_type).name;
+            }
             std::cout << std::left 
                       << "protein atom_name: " << std::setw(10) << protein.atom_name(j)
-                      << " residue: " << std::setw(10) << mudock::get_description(protein.residue_types(j)).name
+                      << " residue: " << std::setw(10) << res_name
                       << " atom_type: " << std::setw(10) << mudock::get_description(protein.atom_type(j)).name
                       << " xtype: " << std::setw(15) << mudock::get_description(xs_prot.x_score_xtool_type(j)).name
                       << "d: " << std::setw(15) << distance << "\n";
