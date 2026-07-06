@@ -6,6 +6,7 @@
 #include <mudock/chem/x_score_hb.hpp>
 #include <mudock/chem/x_score_ligand.hpp>
 #include <mudock/chem/x_score_protein.hpp>
+#include <mudock/chem/x_score_rt.hpp>
 #include <mudock/chem/x_score_validity.hpp>
 #include <mudock/compute/x_score_kernel.hpp>
 #include <mudock/compute/x_score_terms.hpp>
@@ -24,11 +25,13 @@ namespace mudock {
 
 #ifndef __CUDACC__
   // X-Score scoring stage.
-  // only vdW and HB implemented for now
+  // only vdW, HP and RT implemented for now
   //
   // The target protein is constant
-  // Each batch oads the ligand poses and runs the kernel that, for every ligand, sums the vdw and
-  // hp contributions against the protein atoms within DIST_CUTOFF.
+  // Each batch loads the ligand poses and runs the kernel that, for every ligand, sums the vdw and
+  // hp contributions against the protein atoms within DIST_CUTOFF. The rotor (rt) term depends only on the
+  // ligand topology, so it is computed once per ligand on the host (compute_x_score_rt) and forwarded to
+  // the kernel so every term lands in the same per-ligand terms buffer.
   //
   // XScore's pocket filter is unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) so not implemented
   template<typename queue_type>
@@ -43,6 +46,7 @@ namespace mudock {
           lig_vdw(_scratch->get_queue()),
           lig_scorable(_scratch->get_queue()),
           lig_hb(_scratch->get_queue()),
+          lig_rt(_scratch->get_queue()),
           prot_x(_scratch->get_queue()),
           prot_y(_scratch->get_queue()),
           prot_z(_scratch->get_queue()),
@@ -105,6 +109,7 @@ namespace mudock {
       lig_vdw.alloc(tot_atoms_in_batch);
       lig_scorable.alloc(tot_atoms_in_batch);
       lig_hb.alloc(tot_atoms_in_batch);
+      lig_rt.alloc(batch_ligands); // per-ligand host-computed rotor term
       terms.alloc(batch_ligands * static_cast<int>(x_term_count));
 
       for (int ligand_index = 0; ligand_index < batch_ligands; ++ligand_index) {
@@ -125,6 +130,9 @@ namespace mudock {
               is_ligand_scorable(xs_lig.valid(i), xs_lig.x_score_xtool_type(i)) ? 1 : 0;
           lig_hb()[stride_atoms + i] = static_cast<int>(xs_lig.hb(i));
         }
+
+        // Rotor (RT) term: ligand-only topology, computed once per ligand on the host.
+        lig_rt()[ligand_index] = compute_x_score_rt(xs_lig);
       }
 
       lig_x.copy_host2device();
@@ -133,6 +141,7 @@ namespace mudock {
       lig_vdw.copy_host2device();
       lig_scorable.copy_host2device();
       lig_hb.copy_host2device();
+      lig_rt.copy_host2device();
 
       const int *num_atoms_b = (*this->scratch).template get<buffer_data_type::NUM_ATOMS>().dev_pointer();
 
@@ -145,6 +154,7 @@ namespace mudock {
                                                             lig_vdw.dev_pointer(),
                                                             lig_scorable.dev_pointer(),
                                                             lig_hb.dev_pointer(),
+                                                            lig_rt.dev_pointer(),
                                                             num_prot_atoms,
                                                             prot_x.dev_pointer(),
                                                             prot_y.dev_pointer(),
@@ -172,6 +182,7 @@ namespace mudock {
       mem += sizeof(fp_type) * max_atoms;         // lig vdw radius
       mem += sizeof(int) * max_atoms;             // lig scorable mask
       mem += sizeof(int) * max_atoms;             // lig hb class
+      mem += sizeof(fp_type);                     // lig rotor term
       mem += sizeof(fp_type) * x_term_count;      // per-ligand raw terms
       return mem;
     }
@@ -188,6 +199,7 @@ namespace mudock {
     buffer_vector<fp_type, queue_type> lig_vdw;
     buffer_vector<int, queue_type> lig_scorable;
     buffer_vector<int, queue_type> lig_hb;
+    buffer_vector<fp_type, queue_type> lig_rt; // per-ligand host-computed rotor term
 
     // protein atom data (cached once)
     buffer_vector<fp_type, queue_type> prot_x;
@@ -229,13 +241,15 @@ namespace mudock {
         const fp_type *t  = terms() + i * static_cast<int>(x_term_count);
         const fp_type vdw = t[x_term_vdw];
         const fp_type hp  = t[x_term_hp];
+        const fp_type rt  = t[x_term_rt];
 
 
         for (std::size_t s = 0; s < scores_per_ligand; ++s)
           scores_b()[i * scores_per_ligand + s] = vdw;
 
         ligand.properties.assign(property_type::SCORE,
-                                 "VDW=" + std::to_string(vdw) + " HP=" + std::to_string(hp));
+                                 "VDW=" + std::to_string(vdw) + " HP=" + std::to_string(hp) +
+                                     " RT=" + std::to_string(rt));
       }
     }
   };

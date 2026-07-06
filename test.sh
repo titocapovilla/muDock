@@ -2,7 +2,7 @@
 #
 # Runs every ligand/protein pair found in the muDock test sets through both muDock's X-Score
 # (x_score_bench) and the original XScore, writing a side-by-side comparison of the raw terms that are
-# currently implemented (VDW HP) to output.txt.
+# currently implemented (VDW HP RT) to output.txt.
 #
 # Terms are being re-introduced one at a time; extend the *_RE regexes below as new terms come online.
 #
@@ -24,15 +24,16 @@ OUT="$ROOT/output.txt"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# Extract the currently-implemented terms (VDW, HP) from a tool's output. Both terms are printed by
-# muDock and XScore as "VDW=<value>" / "HP=<value>"; we pull them individually so the two tools can print
-# different sets of terms (XScore also emits HB/HM/HS/RT) without breaking the comparison.
+# Extract the currently-implemented terms (VDW, HP, RT) from a tool's output. Each term is printed by
+# muDock and XScore as "VDW=<value>" / "HP=<value>" / "RT=<value>"; we pull them individually so the two
+# tools can print different sets of terms (XScore also emits HB/HM/HS) without breaking the comparison.
 terms_of() {
-  # $1 = raw multi-line tool output ; echoes "VDW=<> HP=<>"
-  local text="$1" vdw hp
+  # $1 = raw multi-line tool output ; echoes "VDW=<> HP=<> RT=<>"
+  local text="$1" vdw hp rt
   vdw="$(printf '%s\n' "$text" | grep -oE 'VDW=[^ ]+' | head -1)"
   hp="$(printf '%s\n' "$text"  | grep -oE 'HP=[^ ]+'  | head -1)"
-  echo "${vdw:-VDW=?} ${hp:-HP=?}"
+  rt="$(printf '%s\n' "$text"  | grep -oE 'RT=[^ ]+'  | head -1)"
+  echo "${vdw:-VDW=?} ${hp:-HP=?} ${rt:-RT=?}"
 }
 
 # --- sanity checks ---

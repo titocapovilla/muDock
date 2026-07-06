@@ -23,6 +23,7 @@ namespace mudock {
                            const fp_type *__restrict__ lig_vdw_b,
                            const int *__restrict__ lig_scorable_b,
                            const int *__restrict__ lig_hb_b,
+                           const fp_type *__restrict__ lig_rt_b,
                            const int num_prot_atoms,
                            const fp_type *__restrict__ prot_x_b,
                            const fp_type *__restrict__ prot_y_b,
@@ -103,6 +104,7 @@ namespace mudock {
       fp_type *__restrict__ terms = terms_b + ligand_index * static_cast<int>(x_term_count);
       terms[x_term_vdw]           = vdw_sum;
       terms[x_term_hp]            = hp_sum;
+      terms[x_term_rt]            = lig_rt_b[ligand_index]; // host-precomputed ligand rotor term
     }
   };
 
@@ -118,6 +120,7 @@ namespace mudock {
                                                     lig_vdw_b,
                                                     lig_scorable_b,
                                                     lig_hb_b,
+                                                    lig_rt_b,
                                                     num_prot_atoms,
                                                     prot_x_b,
                                                     prot_y_b,
