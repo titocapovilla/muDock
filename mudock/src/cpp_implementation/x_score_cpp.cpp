@@ -1,56 +1,63 @@
 #include <cmath>
+#include <mudock/chem/x_score_hb.hpp>
+#include <mudock/compute/x_score_terms.hpp>
 #include <mudock/cpp_implementation/x_score_cpp.hpp>
 
 namespace mudock {
 
-  // XScore vdw distance cutoff: pairs farther apart than this do not contribute.
+  
   static constexpr fp_type x_score_dist_cutoff = fp_type{8.0};
 
-  // Van der Waals term ported from XScore (Calculate_VDW, score.cpp) and from the
-  // reference prototype in test_x_score_types.cpp::calculate_vdw.
-  //
-  // For each scorable ligand atom we accumulate, over the scorable protein atoms within
-  // the distance cutoff, the (d0/d)^12 - 2*(d0/d)^6 well shape (expressed as ((d0/d)^4)^2
-  // - 2*(d0/d)^4), flip its sign so that favorable interactions are positive, and discard
-  // per-atom contributions that turn out unfavorable. The ligand score is the sum of the
-  // surviving per-atom contributions.
+  // Integer code of the hydrophobic ("H") hydrogen-bonding class, as stored in the *_hb buffers.
+  static constexpr int x_hb_hydrophobic = static_cast<int>(x_score_hb::H);
+
+  // Compute the raw X-Score terms for every ligand in the batch and write them into terms_b, laid out
+  // per ligand as x_term_count contiguous values. Both terms are pairwise grid sums over the scorable
+  // protein atoms: van der Waals (Calculate_VDW) and hydrophobic pair (Calculate_HP).
   inline void calc_x_score(const int batch_atoms,
                            const int batch_ligands,
-                           const int scores_per_ligand,
                            const int *__restrict__ num_atoms_b,
                            const fp_type *__restrict__ lig_x_b,
                            const fp_type *__restrict__ lig_y_b,
                            const fp_type *__restrict__ lig_z_b,
                            const fp_type *__restrict__ lig_vdw_b,
                            const int *__restrict__ lig_scorable_b,
+                           const int *__restrict__ lig_hb_b,
                            const int num_prot_atoms,
                            const fp_type *__restrict__ prot_x_b,
                            const fp_type *__restrict__ prot_y_b,
                            const fp_type *__restrict__ prot_z_b,
                            const fp_type *__restrict__ prot_vdw_b,
                            const int *__restrict__ prot_scorable_b,
-                           fp_type *__restrict__ scores_b) {
+                           const int *__restrict__ prot_hb_b,
+                           fp_type *__restrict__ terms_b) {
     for (int ligand_index = 0; ligand_index < batch_ligands; ++ligand_index) {
       const int atom_stride = ligand_index * batch_atoms;
       const int num_atoms   = num_atoms_b[ligand_index];
 
-      const fp_type *__restrict__ lig_x   = lig_x_b + atom_stride;
-      const fp_type *__restrict__ lig_y   = lig_y_b + atom_stride;
-      const fp_type *__restrict__ lig_z   = lig_z_b + atom_stride;
-      const fp_type *__restrict__ lig_vdw = lig_vdw_b + atom_stride;
+      const fp_type *__restrict__ lig_x    = lig_x_b + atom_stride;
+      const fp_type *__restrict__ lig_y    = lig_y_b + atom_stride;
+      const fp_type *__restrict__ lig_z    = lig_z_b + atom_stride;
+      const fp_type *__restrict__ lig_vdw  = lig_vdw_b + atom_stride;
       const int *__restrict__ lig_scorable = lig_scorable_b + atom_stride;
+      const int *__restrict__ lig_hb       = lig_hb_b + atom_stride;
 
-      fp_type sum = 0;
+      fp_type vdw_sum = 0;
+      fp_type hp_sum  = 0;
+
       for (int i = 0; i < num_atoms; ++i) {
         if (!lig_scorable[i])
           continue;
 
-        const fp_type lx = lig_x[i];
-        const fp_type ly = lig_y[i];
-        const fp_type lz = lig_z[i];
-        const fp_type lr = lig_vdw[i];
+        const fp_type lx           = lig_x[i];
+        const fp_type ly           = lig_y[i];
+        const fp_type lz           = lig_z[i];
+        const fp_type lr           = lig_vdw[i];
+        const bool lig_hydrophobic = (lig_hb[i] == x_hb_hydrophobic);
 
-        fp_type asum = 0;
+        fp_type vdw_asum = 0; // van der Waals well, summed over protein atoms
+        fp_type hp_asum  = 0; // hydrophobic-pair ramp, summed over hydrophobic protein atoms
+
         for (int j = 0; j < num_prot_atoms; ++j) {
           if (!prot_scorable_b[j])
             continue;
@@ -60,26 +67,42 @@ namespace mudock {
           const fp_type dz = lz - prot_z_b[j];
           const fp_type d  = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-          if (d > x_score_dist_cutoff)
-            continue;
+          // --- van der Waals (Calculate_VDW): (d0/d)^8 - 2*(d0/d)^4 within d <= cutoff ---
+          if (d <= x_score_dist_cutoff) {
+            const fp_type d0   = lr + prot_vdw_b[j];
+            fp_type tmp1       = d0 / d;
+            tmp1               = tmp1 * tmp1 * tmp1 * tmp1; // (d0/d)^4
+            const fp_type tmp2 = tmp1 * tmp1;               // (d0/d)^8
+            vdw_asum += tmp2 - fp_type{2} * tmp1;
+          }
 
-          const fp_type d0   = lr + prot_vdw_b[j];
-          fp_type tmp1       = d0 / d;
-          tmp1               = tmp1 * tmp1 * tmp1 * tmp1; // (d0/d)^4
-          const fp_type tmp2 = tmp1 * tmp1;               // (d0/d)^8
-          asum += tmp2 - fp_type{2} * tmp1;
+          // --- hydrophobic pair (Calculate_HP): linear ramp between two hydrophobic atoms,
+          // restricted to d < cutoff (strict, matching XScore's `d>=cutoff continue`) ---
+          if (lig_hydrophobic && prot_hb_b[j] == x_hb_hydrophobic && d < x_score_dist_cutoff) {
+            const fp_type sum_r = lr + prot_vdw_b[j];
+            const fp_type d1    = sum_r + fp_type{0.5};
+            const fp_type d2    = sum_r + fp_type{2.2};
+            if (d < d1)
+              hp_asum += fp_type{1};
+            else if (d < d2)
+              hp_asum += (fp_type{1} / (d1 - d2)) * (d - d2);
+            // d >= d2 contributes nothing
+          }
         }
 
-        asum *= fp_type{-1}; // favorable interactions become positive
+        // van der Waals: flip the sign so favorable is positive, drop unfavorable per-atom sums
+        vdw_asum *= fp_type{-1};
+        if (vdw_asum >= fp_type{0})
+          vdw_sum += vdw_asum;
 
-        if (asum < fp_type{0})
-          continue; // discard unfavorable per-atom contributions
-        sum += asum;
+        // hydrophobic pair: the per-atom contribution is kept as-is
+        if (lig_hydrophobic)
+          hp_sum += hp_asum;
       }
 
-      fp_type *__restrict__ scores_l = scores_b + ligand_index * scores_per_ligand;
-      for (int s = 0; s < scores_per_ligand; ++s)
-        scores_l[s] = sum;
+      fp_type *__restrict__ terms = terms_b + ligand_index * static_cast<int>(x_term_count);
+      terms[x_term_vdw]           = vdw_sum;
+      terms[x_term_hp]            = hp_sum;
     }
   };
 
@@ -88,19 +111,20 @@ namespace mudock {
     q->invoke_kernel<x_score_kernel::x_region_name>(calc_x_score,
                                                     batch_atoms,
                                                     batch_ligands,
-                                                    scores_per_ligand,
                                                     num_atoms_b,
                                                     lig_x_b,
                                                     lig_y_b,
                                                     lig_z_b,
                                                     lig_vdw_b,
                                                     lig_scorable_b,
+                                                    lig_hb_b,
                                                     num_prot_atoms,
                                                     prot_x_b,
                                                     prot_y_b,
                                                     prot_z_b,
                                                     prot_vdw_b,
                                                     prot_scorable_b,
-                                                    scores_b);
+                                                    prot_hb_b,
+                                                    terms_b);
   }
 } // namespace mudock

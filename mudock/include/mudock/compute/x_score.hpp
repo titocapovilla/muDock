@@ -3,10 +3,12 @@
 #include <cstddef>
 #include <cstring>
 #include <mudock/batch.hpp>
+#include <mudock/chem/x_score_hb.hpp>
 #include <mudock/chem/x_score_ligand.hpp>
 #include <mudock/chem/x_score_protein.hpp>
 #include <mudock/chem/x_score_validity.hpp>
 #include <mudock/compute/x_score_kernel.hpp>
+#include <mudock/compute/x_score_terms.hpp>
 #ifndef __CUDACC__
   #include <mudock/compute/buffer_utils.hpp>
   #include <mudock/compute/scoring.hpp>
@@ -21,20 +23,14 @@ namespace mudock {
   int get_x_score_batch(const int, std::shared_ptr<queue_type>, const size_t);
 
 #ifndef __CUDACC__
-  // X-Score scoring stage. It mirrors the adt_score stage but implements (for now) only
-  // the van der Waals (vdw) term ported from XScore.
+  // X-Score scoring stage.
+  // only vdW and HB implemented for now
   //
-  // The target protein is constant for the whole virtual screening, so its per-atom data
-  // (coordinates, vdw radius and a "scorable" mask) is computed once in the constructor.
-  // Each batch then loads the ligand poses and runs the kernel that, for every ligand,
-  // sums the vdw contribution against the protein atoms within DIST_CUTOFF.
+  // The target protein is constant
+  // Each batch oads the ligand poses and runs the kernel that, for every ligand, sums the vdw and
+  // hp contributions against the protein atoms within DIST_CUTOFF.
   //
-  // NOTE on the binding pocket: XScore restricts the vdw sum to pocket atoms
-  // (define_pocket, see x_score_pocket.hpp). For the vdw term this is purely a performance
-  // pre-filter: any protein atom within the 8 A vdw cutoff is necessarily within the 10 A
-  // pocket cutoff, so iterating all valid non-hydrogen/water protein atoms with the
-  // distance cutoff yields the same result while keeping the protein cached once for the
-  // whole batch. define_pocket remains available for the terms that genuinely need it.
+  // XScore's pocket filter is unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) so not implemented
   template<typename queue_type>
   struct x_score: public scoring<queue_type> {
     x_score(std::shared_ptr<scratchpad<queue_type>> _scratch,
@@ -46,11 +42,14 @@ namespace mudock {
           lig_z(_scratch->get_queue()),
           lig_vdw(_scratch->get_queue()),
           lig_scorable(_scratch->get_queue()),
+          lig_hb(_scratch->get_queue()),
           prot_x(_scratch->get_queue()),
           prot_y(_scratch->get_queue()),
           prot_z(_scratch->get_queue()),
           prot_vdw(_scratch->get_queue()),
           prot_scorable(_scratch->get_queue()),
+          prot_hb(_scratch->get_queue()),
+          terms(_scratch->get_queue()),
           device_scratch(_device_scratch) {
       // Type the protein and cache its per-atom data once (single fixed target).
       x_score_protein xs_prot{protein};
@@ -62,6 +61,7 @@ namespace mudock {
       prot_z.alloc(num_prot_atoms);
       prot_vdw.alloc(num_prot_atoms);
       prot_scorable.alloc(num_prot_atoms);
+      prot_hb.alloc(num_prot_atoms);
 
       for (int j = 0; j < num_prot_atoms; ++j) {
         prot_x()[j]   = pmol.x(j);
@@ -70,6 +70,7 @@ namespace mudock {
         prot_vdw()[j] = xs_prot.vdw_radius(j);
         prot_scorable()[j] =
             is_protein_scorable(xs_prot.valid(j), xs_prot.x_score_xtool_type(j)) ? 1 : 0;
+        prot_hb()[j] = static_cast<int>(xs_prot.hb(j));
       }
 
       prot_x.copy_host2device();
@@ -77,6 +78,7 @@ namespace mudock {
       prot_z.copy_host2device();
       prot_vdw.copy_host2device();
       prot_scorable.copy_host2device();
+      prot_hb.copy_host2device();
     }
 
     void prepare(batch<static_molecule> &batch) {
@@ -102,6 +104,8 @@ namespace mudock {
       lig_z.alloc(tot_atoms_in_batch);
       lig_vdw.alloc(tot_atoms_in_batch);
       lig_scorable.alloc(tot_atoms_in_batch);
+      lig_hb.alloc(tot_atoms_in_batch);
+      terms.alloc(batch_ligands * static_cast<int>(x_term_count));
 
       for (int ligand_index = 0; ligand_index < batch_ligands; ++ligand_index) {
         auto &ligand           = *batch.molecules[ligand_index];
@@ -119,6 +123,7 @@ namespace mudock {
         for (int i = 0; i < num_atoms; ++i) {
           lig_scorable()[stride_atoms + i] =
               is_ligand_scorable(xs_lig.valid(i), xs_lig.x_score_xtool_type(i)) ? 1 : 0;
+          lig_hb()[stride_atoms + i] = static_cast<int>(xs_lig.hb(i));
         }
       }
 
@@ -127,12 +132,11 @@ namespace mudock {
       lig_z.copy_host2device();
       lig_vdw.copy_host2device();
       lig_scorable.copy_host2device();
+      lig_hb.copy_host2device();
 
       const int *num_atoms_b = (*this->scratch).template get<buffer_data_type::NUM_ATOMS>().dev_pointer();
-      fp_type *scores_b      = score_b.dev_pointer();
 
-      kernel = std::make_unique<x_score_kernel<queue_type>>(scores_per_ligand,
-                                                            batch_ligands,
+      kernel = std::make_unique<x_score_kernel<queue_type>>(batch_ligands,
                                                             batch_atoms,
                                                             num_atoms_b,
                                                             lig_x.dev_pointer(),
@@ -140,13 +144,15 @@ namespace mudock {
                                                             lig_z.dev_pointer(),
                                                             lig_vdw.dev_pointer(),
                                                             lig_scorable.dev_pointer(),
+                                                            lig_hb.dev_pointer(),
                                                             num_prot_atoms,
                                                             prot_x.dev_pointer(),
                                                             prot_y.dev_pointer(),
                                                             prot_z.dev_pointer(),
                                                             prot_vdw.dev_pointer(),
                                                             prot_scorable.dev_pointer(),
-                                                            scores_b,
+                                                            prot_hb.dev_pointer(),
+                                                            terms.dev_pointer(),
                                                             q);
     }
 
@@ -165,6 +171,8 @@ namespace mudock {
       mem += sizeof(fp_type) * max_atoms;         // lig z
       mem += sizeof(fp_type) * max_atoms;         // lig vdw radius
       mem += sizeof(int) * max_atoms;             // lig scorable mask
+      mem += sizeof(int) * max_atoms;             // lig hb class
+      mem += sizeof(fp_type) * x_term_count;      // per-ligand raw terms
       return mem;
     }
 
@@ -179,6 +187,7 @@ namespace mudock {
     buffer_vector<fp_type, queue_type> lig_z;
     buffer_vector<fp_type, queue_type> lig_vdw;
     buffer_vector<int, queue_type> lig_scorable;
+    buffer_vector<int, queue_type> lig_hb;
 
     // protein atom data (cached once)
     buffer_vector<fp_type, queue_type> prot_x;
@@ -186,6 +195,10 @@ namespace mudock {
     buffer_vector<fp_type, queue_type> prot_z;
     buffer_vector<fp_type, queue_type> prot_vdw;
     buffer_vector<int, queue_type> prot_scorable;
+    buffer_vector<int, queue_type> prot_hb;
+
+    // per-ligand raw X-Score terms (x_term_count contiguous values per ligand)
+    buffer_vector<fp_type, queue_type> terms;
 
     std::shared_ptr<scratchpad<queue_type>> device_scratch;
     std::unique_ptr<x_score_kernel<queue_type>> kernel;
@@ -209,11 +222,20 @@ namespace mudock {
     void teardown_impl(batch<static_molecule> &batch) override {
       auto &scores_b               = (*this->scratch).template get<buffer_data_type::SCORES>();
       const auto scores_per_ligand = scores_b.num_elements() / batch.num_ligands;
-      scores_b.copy_device2host();
+      terms.copy_device2host();
       (*this->scratch).get_queue()->synchronize();
       for (int i = 0; i < batch.num_ligands; ++i) {
-        auto &ligand = *batch.molecules[i];
-        ligand.properties.assign(property_type::SCORE, std::to_string(scores_b()[i * scores_per_ligand]));
+        auto &ligand      = *batch.molecules[i];
+        const fp_type *t  = terms() + i * static_cast<int>(x_term_count);
+        const fp_type vdw = t[x_term_vdw];
+        const fp_type hp  = t[x_term_hp];
+
+
+        for (std::size_t s = 0; s < scores_per_ligand; ++s)
+          scores_b()[i * scores_per_ligand + s] = vdw;
+
+        ligand.properties.assign(property_type::SCORE,
+                                 "VDW=" + std::to_string(vdw) + " HP=" + std::to_string(hp));
       }
     }
   };

@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
   input_queue->send_terminate_signal(); // signal that no more ligand will be enqueued
 
-  mudock::info("Running X-Score (vdw) batch scoring ...");
+  mudock::info("Running X-Score (vdw, hp) batch scoring ...");
 
   mudock::x_score_pipeline pipe{protein};
   auto output_queue = std::make_shared<mudock::safe_queue<mudock::static_molecule>>();
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     ++processed;
     const auto& name  = ligand->properties.get(mudock::property_type::NAME);
     const auto& score = ligand->properties.get(mudock::property_type::SCORE);
-    mudock::info("Ligand ", name, " vdw score: ", score);
+    mudock::info("Ligand ", name, " terms  ", score);
   }
 
   mudock::info("Processed ligands: ", processed);

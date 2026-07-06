@@ -6,22 +6,18 @@
 #include <mudock/type_alias.hpp>
 
 namespace mudock {
-  // X-Score scoring kernel. For now it implements the van der Waals (vdw) term only.
+  // X-Score scoring kernel. It implements the pairwise grid terms of X-Score; for now the van der Waals
+  // (vdw) and hydrophobic-pair (hp) terms.
   //
-  // The kernel mirrors the adt_score_kernel design: it stores raw (device) pointers to
-  // the data prepared by the x_score stage, and the actual computation is provided per
-  // backend through the explicit specialization of operator() (e.g. queue_cpp in
-  // x_score_cpp.cpp).
-  //
-  // The protein atom arrays are constant across the whole batch (a single target), while
-  // the ligand atom arrays are laid out per-ligand with a stride of batch_atoms.
+  // The protein atom arrays are constant across the whole batch (a single target), while the ligand atom
+  // arrays are laid out per-ligand with a stride of batch_atoms. The output is written into terms_b, laid
+  // out per ligand as x_term_count contiguous raw terms (see x_score_terms.hpp).
   template<typename queue_type>
     requires std::derived_from<queue_type, queue>
   struct x_score_kernel {
     static constexpr char x_region_name[] = "x_score_kernel";
 
-    x_score_kernel(const int scores_per_ligand_,
-                   const int batch_ligands_,
+    x_score_kernel(const int batch_ligands_,
                    const int batch_atoms_,
                    const int *__restrict__ num_atoms_b_,
                    const fp_type *__restrict__ lig_x_b_,
@@ -29,16 +25,17 @@ namespace mudock {
                    const fp_type *__restrict__ lig_z_b_,
                    const fp_type *__restrict__ lig_vdw_b_,
                    const int *__restrict__ lig_scorable_b_,
+                   const int *__restrict__ lig_hb_b_,
                    const int num_prot_atoms_,
                    const fp_type *__restrict__ prot_x_b_,
                    const fp_type *__restrict__ prot_y_b_,
                    const fp_type *__restrict__ prot_z_b_,
                    const fp_type *__restrict__ prot_vdw_b_,
                    const int *__restrict__ prot_scorable_b_,
-                   fp_type *__restrict__ scores_b_,
+                   const int *__restrict__ prot_hb_b_,
+                   fp_type *__restrict__ terms_b_,
                    std::shared_ptr<queue_type> q_)
-        : scores_per_ligand(scores_per_ligand_),
-          batch_ligands(batch_ligands_),
+        : batch_ligands(batch_ligands_),
           batch_atoms(batch_atoms_),
           num_atoms_b(num_atoms_b_),
           lig_x_b(lig_x_b_),
@@ -46,13 +43,15 @@ namespace mudock {
           lig_z_b(lig_z_b_),
           lig_vdw_b(lig_vdw_b_),
           lig_scorable_b(lig_scorable_b_),
+          lig_hb_b(lig_hb_b_),
           num_prot_atoms(num_prot_atoms_),
           prot_x_b(prot_x_b_),
           prot_y_b(prot_y_b_),
           prot_z_b(prot_z_b_),
           prot_vdw_b(prot_vdw_b_),
           prot_scorable_b(prot_scorable_b_),
-          scores_b(scores_b_),
+          prot_hb_b(prot_hb_b_),
+          terms_b(terms_b_),
           q(q_) {}
 
     void operator()();
@@ -65,7 +64,6 @@ namespace mudock {
     ~x_score_kernel() = default;
 
   private:
-    const int scores_per_ligand;
     const int batch_ligands;
     const int batch_atoms;
     const int *__restrict__ num_atoms_b;
@@ -76,6 +74,7 @@ namespace mudock {
     const fp_type *__restrict__ lig_z_b;
     const fp_type *__restrict__ lig_vdw_b;
     const int *__restrict__ lig_scorable_b;
+    const int *__restrict__ lig_hb_b;
 
     // protein atom data, shared across the whole batch (single target)
     const int num_prot_atoms;
@@ -84,8 +83,10 @@ namespace mudock {
     const fp_type *__restrict__ prot_z_b;
     const fp_type *__restrict__ prot_vdw_b;
     const int *__restrict__ prot_scorable_b;
+    const int *__restrict__ prot_hb_b;
 
-    fp_type *__restrict__ scores_b;
+    // per-ligand raw X-Score terms (x_term_count contiguous values per ligand)
+    fp_type *__restrict__ terms_b;
     std::shared_ptr<queue_type> q;
   };
 

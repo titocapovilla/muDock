@@ -705,6 +705,8 @@ namespace mudock {
       // DATA SAVING
       layer.x_score_xtool_type(i) = assigned_type;
       layer.vdw_radius(i)         = get_description(assigned_type).vdw_radius;
+      // Ligand hydrogen-bonding class is authoritative from the X-Tool atom dictionary.
+      layer.hb(i) = parse_x_score_hb(get_description(assigned_type).hbond);
       // Mirror XScore's Value_Atom: an atom that fails typing (unknown type) is
       // marked invalid, otherwise it is valid. Pocket promotion happens later in
       // define_pocket (protein only).
@@ -760,6 +762,7 @@ namespace mudock {
             mol.atom_type(i)            = atom_tmpl.basic_atom_type;
             layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
             layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+            layer.hb(i) = parse_x_score_hb(atom_tmpl.hbond);
             //logp type can also be assigned here if needed
             found = true;
             break;
@@ -811,6 +814,7 @@ namespace mudock {
             mol.atom_type(i)            = atom_tmpl.basic_atom_type;
             layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
             layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+            layer.hb(i) = parse_x_score_hb(atom_tmpl.hbond);
             found                       = true;
             break;
           }
@@ -842,6 +846,7 @@ namespace mudock {
             mol.atom_type(i)            = atom_tmpl.basic_atom_type;
             layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
             layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+            layer.hb(i) = parse_x_score_hb(atom_tmpl.hbond);
             found                       = true;
             break;
           }
@@ -869,6 +874,7 @@ namespace mudock {
         mol.atom_type(i)            = xtool_ff::Un;
         layer.x_score_xtool_type(i) = xtool_ff::Un;
         layer.vdw_radius(i)         = get_description(xtool_ff::Un).vdw_radius;
+        layer.hb(i)         = parse_x_score_hb(get_description(xtool_ff::Un).hbond);
       }
 
       // Initial validity (XScore Value_Atom): valid if typed via a fallback
