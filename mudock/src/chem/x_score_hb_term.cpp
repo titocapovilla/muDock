@@ -210,6 +210,9 @@ namespace mudock {
         for (const int nb: adj[i]) {
           if (is_hydrogen(mol.atom_type(nb))) {
             ++num_h;
+          } else if (layer.hb(nb) == x_score_hb::M) {
+            // Exclude metal neighbours to match XScore.
+            continue;
           } else {
             rx += mol.x(nb);
             ry += mol.y(nb);

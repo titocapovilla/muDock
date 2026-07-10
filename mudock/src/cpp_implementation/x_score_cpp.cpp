@@ -106,7 +106,8 @@ namespace mudock {
       terms[x_term_vdw]           = vdw_sum;
       terms[x_term_hp]            = hp_sum;
       terms[x_term_hb]            = lig_hbt_b[ligand_index]; 
-      terms[x_term_rt]            = lig_rt_b[ligand_index];  
+      terms[x_term_rt]            = lig_rt_b[ligand_index];
+    }
   };
 
   template<>
