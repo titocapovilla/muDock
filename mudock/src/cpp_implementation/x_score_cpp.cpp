@@ -24,6 +24,7 @@ namespace mudock {
                            const int *__restrict__ lig_scorable_b,
                            const int *__restrict__ lig_hb_b,
                            const fp_type *__restrict__ lig_rt_b,
+                           const fp_type *__restrict__ lig_hbt_b,
                            const int num_prot_atoms,
                            const fp_type *__restrict__ prot_x_b,
                            const fp_type *__restrict__ prot_y_b,
@@ -68,7 +69,7 @@ namespace mudock {
           const fp_type dz = lz - prot_z_b[j];
           const fp_type d  = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-          // --- van der Waals (Calculate_VDW): (d0/d)^8 - 2*(d0/d)^4 within d <= cutoff ---
+          // van der Waals (Calculate_VDW): (d0/d)^8 - 2*(d0/d)^4 within d <= cutoff 
           if (d <= x_score_dist_cutoff) {
             const fp_type d0   = lr + prot_vdw_b[j];
             fp_type tmp1       = d0 / d;
@@ -77,8 +78,8 @@ namespace mudock {
             vdw_asum += tmp2 - fp_type{2} * tmp1;
           }
 
-          // --- hydrophobic pair (Calculate_HP): linear ramp between two hydrophobic atoms,
-          // restricted to d < cutoff (strict, matching XScore's `d>=cutoff continue`) ---
+          // hydrophobic pair (Calculate_HP): linear ramp between two hydrophobic atoms,
+          // restricted to d < cutoff (strict, matching XScore's `d>=cutoff continue`) 
           if (lig_hydrophobic && prot_hb_b[j] == x_hb_hydrophobic && d < x_score_dist_cutoff) {
             const fp_type sum_r = lr + prot_vdw_b[j];
             const fp_type d1    = sum_r + fp_type{0.5};
@@ -104,8 +105,8 @@ namespace mudock {
       fp_type *__restrict__ terms = terms_b + ligand_index * static_cast<int>(x_term_count);
       terms[x_term_vdw]           = vdw_sum;
       terms[x_term_hp]            = hp_sum;
-      terms[x_term_rt]            = lig_rt_b[ligand_index]; // host-precomputed ligand rotor term
-    }
+      terms[x_term_hb]            = lig_hbt_b[ligand_index]; 
+      terms[x_term_rt]            = lig_rt_b[ligand_index];  
   };
 
   template<>
@@ -121,6 +122,7 @@ namespace mudock {
                                                     lig_scorable_b,
                                                     lig_hb_b,
                                                     lig_rt_b,
+                                                    lig_hbt_b,
                                                     num_prot_atoms,
                                                     prot_x_b,
                                                     prot_y_b,

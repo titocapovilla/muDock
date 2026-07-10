@@ -4,6 +4,7 @@
 #include <cstring>
 #include <mudock/batch.hpp>
 #include <mudock/chem/x_score_hb.hpp>
+#include <mudock/chem/x_score_hb_term.hpp>
 #include <mudock/chem/x_score_ligand.hpp>
 #include <mudock/chem/x_score_protein.hpp>
 #include <mudock/chem/x_score_rt.hpp>
@@ -25,13 +26,14 @@ namespace mudock {
 
 #ifndef __CUDACC__
   // X-Score scoring stage.
-  // only vdW, HP and RT implemented for now
+  // only vdW, HB, HP and RT implemented for now
   //
   // The target protein is constant
   // Each batch loads the ligand poses and runs the kernel that, for every ligand, sums the vdw and
-  // hp contributions against the protein atoms within DIST_CUTOFF. The rotor (rt) term depends only on the
-  // ligand topology, so it is computed once per ligand on the host (compute_x_score_rt) and forwarded to
-  // the kernel so every term lands in the same per-ligand terms buffer.
+  // hp contributions against the protein atoms within DIST_CUTOFF. The hydrogen-bond (hb) and rotor (rt)
+  // terms are computed once per ligand on the host (compute_x_score_hb / compute_x_score_rt) and forwarded
+  // to the kernel so every term lands in the same per-ligand terms buffer. HB pairs the ligand against the
+  // protein donor/acceptor list built once in the constructor.
   //
   // XScore's pocket filter is unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) so not implemented
   template<typename queue_type>
@@ -47,6 +49,7 @@ namespace mudock {
           lig_scorable(_scratch->get_queue()),
           lig_hb(_scratch->get_queue()),
           lig_rt(_scratch->get_queue()),
+          lig_hbt(_scratch->get_queue()),
           prot_x(_scratch->get_queue()),
           prot_y(_scratch->get_queue()),
           prot_z(_scratch->get_queue()),
@@ -83,6 +86,10 @@ namespace mudock {
       prot_vdw.copy_host2device();
       prot_scorable.copy_host2device();
       prot_hb.copy_host2device();
+
+      // Hydrogen-bond (HB) term: build the protein donor/acceptor atom list once,
+      // reused with every ligand in prepare().
+      prot_hb_atoms = build_protein_hb_atoms(xs_prot);
     }
 
     void prepare(batch<static_molecule> &batch) {
@@ -109,7 +116,8 @@ namespace mudock {
       lig_vdw.alloc(tot_atoms_in_batch);
       lig_scorable.alloc(tot_atoms_in_batch);
       lig_hb.alloc(tot_atoms_in_batch);
-      lig_rt.alloc(batch_ligands); // per-ligand host-computed rotor term
+      lig_rt.alloc(batch_ligands);  // per-ligand host-computed rotor term
+      lig_hbt.alloc(batch_ligands); // per-ligand host-computed hydrogen-bond term
       terms.alloc(batch_ligands * static_cast<int>(x_term_count));
 
       for (int ligand_index = 0; ligand_index < batch_ligands; ++ligand_index) {
@@ -131,8 +139,12 @@ namespace mudock {
           lig_hb()[stride_atoms + i] = static_cast<int>(xs_lig.hb(i));
         }
 
-        // Rotor (RT) term: ligand-only topology, computed once per ligand on the host.
+        // Rotor (RT) term: ligand-only, computed once per ligand
         lig_rt()[ligand_index] = compute_x_score_rt(xs_lig);
+
+        // Hydrogen-bond (HB) term: geometric donor/acceptor pairing against protein list,
+        // per-ligand filtering step
+        lig_hbt()[ligand_index] = compute_x_score_hb(build_ligand_hb_atoms(xs_lig), prot_hb_atoms);
       }
 
       lig_x.copy_host2device();
@@ -142,6 +154,7 @@ namespace mudock {
       lig_scorable.copy_host2device();
       lig_hb.copy_host2device();
       lig_rt.copy_host2device();
+      lig_hbt.copy_host2device();
 
       const int *num_atoms_b = (*this->scratch).template get<buffer_data_type::NUM_ATOMS>().dev_pointer();
 
@@ -155,6 +168,7 @@ namespace mudock {
                                                             lig_scorable.dev_pointer(),
                                                             lig_hb.dev_pointer(),
                                                             lig_rt.dev_pointer(),
+                                                            lig_hbt.dev_pointer(),
                                                             num_prot_atoms,
                                                             prot_x.dev_pointer(),
                                                             prot_y.dev_pointer(),
@@ -183,6 +197,7 @@ namespace mudock {
       mem += sizeof(int) * max_atoms;             // lig scorable mask
       mem += sizeof(int) * max_atoms;             // lig hb class
       mem += sizeof(fp_type);                     // lig rotor term
+      mem += sizeof(fp_type);                     // lig hydrogen-bond term
       mem += sizeof(fp_type) * x_term_count;      // per-ligand raw terms
       return mem;
     }
@@ -199,7 +214,8 @@ namespace mudock {
     buffer_vector<fp_type, queue_type> lig_vdw;
     buffer_vector<int, queue_type> lig_scorable;
     buffer_vector<int, queue_type> lig_hb;
-    buffer_vector<fp_type, queue_type> lig_rt; // per-ligand host-computed rotor term
+    buffer_vector<fp_type, queue_type> lig_rt;
+    buffer_vector<fp_type, queue_type> lig_hbt; 
 
     // protein atom data (cached once)
     buffer_vector<fp_type, queue_type> prot_x;
@@ -208,6 +224,9 @@ namespace mudock {
     buffer_vector<fp_type, queue_type> prot_vdw;
     buffer_vector<int, queue_type> prot_scorable;
     buffer_vector<int, queue_type> prot_hb;
+
+    // protein hydrogen-bond donor/acceptor atom list, saved once for the whole batch
+    std::vector<x_score_hb_atom> prot_hb_atoms;
 
     // per-ligand raw X-Score terms (x_term_count contiguous values per ligand)
     buffer_vector<fp_type, queue_type> terms;
@@ -240,6 +259,7 @@ namespace mudock {
         auto &ligand      = *batch.molecules[i];
         const fp_type *t  = terms() + i * static_cast<int>(x_term_count);
         const fp_type vdw = t[x_term_vdw];
+        const fp_type hb  = t[x_term_hb];
         const fp_type hp  = t[x_term_hp];
         const fp_type rt  = t[x_term_rt];
 
@@ -248,8 +268,8 @@ namespace mudock {
           scores_b()[i * scores_per_ligand + s] = vdw;
 
         ligand.properties.assign(property_type::SCORE,
-                                 "VDW=" + std::to_string(vdw) + " HP=" + std::to_string(hp) +
-                                     " RT=" + std::to_string(rt));
+                                 "VDW=" + std::to_string(vdw) + " HB=" + std::to_string(hb) +
+                                     " HP=" + std::to_string(hp) + " RT=" + std::to_string(rt));
       }
     }
   };

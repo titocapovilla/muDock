@@ -6,8 +6,10 @@
 #include <mudock/type_alias.hpp>
 
 namespace mudock {
-  // X-Score scoring kernel. For now, it implements:
-  // the van der Waals (vdw), hydrophobic-pair (hp) and rotor penalty (RT).
+  // X-Score scoring kernel. For now, it gathers:
+  // the van der Waals (vdw), hydrogen-bond (hb), hydrophobic-pair (hp) and rotor penalty (rt) terms.
+  // The pairwise grid terms (vdw, hp) are computed here; the ligand-only / host-reduced terms (rt, hb)
+  // are precomputed on the host and forwarded per-ligand (lig_rt_b, lig_hbt_b).
   //
   // The protein atom arrays are constant across the whole batch (a single target), while the ligand atom
   // arrays are laid out per-ligand with a stride of batch_atoms. The output is written into terms_b, laid
@@ -27,6 +29,7 @@ namespace mudock {
                    const int *__restrict__ lig_scorable_b_,
                    const int *__restrict__ lig_hb_b_,
                    const fp_type *__restrict__ lig_rt_b_,
+                   const fp_type *__restrict__ lig_hbt_b_,
                    const int num_prot_atoms_,
                    const fp_type *__restrict__ prot_x_b_,
                    const fp_type *__restrict__ prot_y_b_,
@@ -46,6 +49,7 @@ namespace mudock {
           lig_scorable_b(lig_scorable_b_),
           lig_hb_b(lig_hb_b_),
           lig_rt_b(lig_rt_b_),
+          lig_hbt_b(lig_hbt_b_),
           num_prot_atoms(num_prot_atoms_),
           prot_x_b(prot_x_b_),
           prot_y_b(prot_y_b_),
@@ -80,6 +84,7 @@ namespace mudock {
 
     // per-ligand host-precomputed terms (indexed by ligand, not strided by batch_atoms)
     const fp_type *__restrict__ lig_rt_b;
+    const fp_type *__restrict__ lig_hbt_b;
 
     // protein atom data, shared across the whole batch (single target)
     const int num_prot_atoms;

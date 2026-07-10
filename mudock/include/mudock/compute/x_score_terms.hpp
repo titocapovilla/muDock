@@ -8,9 +8,10 @@ namespace mudock {
   //
   enum x_score_term : int {
     x_term_vdw = 0, // van der Waals        (Calculate_VDW)
-    x_term_hp  = 1, // hydrophobic pairwise (Calculate_HP)
-    x_term_rt  = 2, // rotor penalty        (Calculate_RT)
-    x_term_count = 3
+    x_term_hb  = 1, // hydrogen bond        (Calculate_HB)
+    x_term_hp  = 2, // hydrophobic pairwise (Calculate_HP)
+    x_term_rt  = 3, // rotor penalty        (Calculate_RT)
+    x_term_count = 4
   };
 
 } // namespace mudock
