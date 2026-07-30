@@ -3,7 +3,6 @@
 #include <iostream>
 #include <mudock/chem/elements.hpp>
 #include <mudock/chem/x_score_ligand.hpp>
-#include <mudock/chem/x_score_pocket.hpp>
 #include <mudock/chem/x_score_protein.hpp>
 #include <mudock/chem/x_score_residue_xtool_types.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
@@ -86,27 +85,13 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
     const std::size_t num_protein_atoms = protein.num_atoms();
 
     for (std::size_t j = 0; j < num_protein_atoms; ++j) {
-      // only binding-pocket atoms are scored (XScore: protein.atom.valid != 2)
-      if (xs_prot.valid(j) != mudock::x_score_validity::pocket) {
-        int dummy = 0;
-        if (i == 0){
-          float distance = calculate_distance(ligand.x(i), ligand.y(i), ligand.z(i), protein.x(j), protein.y(j), protein.z(j));
-          //if (distance < 10.0f){
-            auto res_type = protein.residue_types(j);
-            std::string_view res_name = "UNKNOWN";
-            if (static_cast<int>(res_type) >= 0 && static_cast<int>(res_type) < mudock::num_residues()) {
-              res_name = mudock::get_description(res_type).name;
-            }
-            std::cout << std::left 
-                      << "protein atom_name: " << std::setw(10) << protein.atom_name(j)
-                      << " residue: " << std::setw(10) << res_name
-                      << " atom_type: " << std::setw(10) << mudock::get_description(protein.atom_type(j)).name
-                      << " xtype: " << std::setw(15) << mudock::get_description(xs_prot.x_score_xtool_type(j)).name
-                      << "d: " << std::setw(15) << distance << "\n";
-          //}
-        }
+      // skip atoms that failed typing (XScore: protein.atom.valid <= 0). XScore also required
+      // valid == 2, i.e. membership of the binding pocket, but the pocket is not part of this
+      // pipeline; the 8 A cutoff below is stricter than XScore's 10 A pocket radius, so every
+      // atom that can contribute is one the pocket would have kept anyway. Same gate as
+      // is_protein_scorable in compute/x_score.hpp.
+      if (xs_prot.valid(j) == mudock::x_score_validity::invalid)
         continue;
-      }
       if (protein.atom_type(j) == mudock::xtool_ff::H) continue;
       if (protein.atom_type(j) == mudock::xtool_ff::Hhb) continue;
       if (protein.atom_type(j) == mudock::xtool_ff::Hg) continue;
@@ -122,15 +107,6 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
 
       float d =
           calculate_distance(ligand.x(i), ligand.y(i), ligand.z(i), protein.x(j), protein.y(j), protein.z(j));
-
-      int dummy = 0;
-
-      // std::cout << std::left 
-      //           << "protein atom_name: " << std::setw(10) << protein.atom_name(j)
-      //           << " residue: " << std::setw(10) << mudock::get_description(protein.residue_types(j)).name
-      //           << " atom_type: " << std::setw(10) << mudock::get_description(protein.atom_type(j)).name
-      //           << " xtype: " << std::setw(15) << mudock::get_description(xs_prot.x_score_xtool_type(j)).name << "\n";
-      //std::cout << "d0: " << std::setw(10) << d0 << "\t" << "d: " << std::setw(15) << d << "\n";
 
       if (d > DIST_CUTOFF)
         continue;
@@ -151,7 +127,6 @@ float calculate_vdw(const mudock::x_score_ligand& xs_lig, const mudock::x_score_
       continue; //+Tito: asum is unfavourable then skip
     else {      // +Tito: else add the contribution to the sum and assign it to the atom's score
       sum += asum;
-      //ligand.atom.score=asum;
     }
   }
 
@@ -192,16 +167,6 @@ int main(int argc, char** argv) {
 
       mudock::dynamic_molecule protein = mudock::parser<mudock::dynamic_molecule>(prot_path);
       mudock::x_score_protein xs_prot{protein};
-
-      // Define the binding pocket: promotes nearby protein atoms to validity 'pocket'
-      // so only binding-site atoms are scored (XScore Define_Pocket).
-      mudock::define_pocket(xs_prot, xs_lig, 10.0);
-
-      // Print ligand information
-      //test_x_score_typing_ligand(xs_lig);
-
-      // Print protein information
-      //test_x_score_typing_protein(xs_prot);
 
       // Calculate and print VDW score
       float vdw_score = calculate_vdw(xs_lig, xs_prot);

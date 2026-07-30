@@ -127,8 +127,8 @@ namespace mudock {
           // remove spaces from atom name, e.g. " CA " -> "CA"
           atom_name.erase(std::remove(atom_name.begin(), atom_name.end(), ' '), atom_name.end());
           dest.atom_name(mudock_atom_index) = atom_name;
-          // residue sequence number + chain id, needed to distinguish residue
-          // instances when defining the binding pocket (see define_pocket).
+          // residue sequence number + chain id, needed to tell apart two instances of the
+          // same residue type on the protein
           dest.res_id(mudock_atom_index) = ob_res->GetNum();
           dest.chain(mudock_atom_index)  = ob_res->GetChain();
         } else {

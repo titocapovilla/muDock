@@ -708,8 +708,7 @@ namespace mudock {
       // Ligand hydrogen-bonding class is authoritative from the X-Tool atom dictionary.
       layer.hb(i) = get_description(assigned_type).hbond;
       // Mirror XScore's Value_Atom: an atom that fails typing (unknown type) is
-      // marked invalid, otherwise it is valid. Pocket promotion happens later in
-      // define_pocket (protein only).
+      // marked invalid, otherwise it is valid.
       layer.valid(i) =
           (assigned_type == xtool_ff::Un) ? x_score_validity::invalid : x_score_validity::valid;
     }
@@ -880,9 +879,8 @@ namespace mudock {
         layer.hb(i)         = get_description(xtool_ff::Un).hbond;
       }
 
-      // Initial validity (XScore Value_Atom): valid if typed via a fallback
-      // template, invalid if no template matched. Pocket promotion (valid==pocket)
-      // is performed later by define_pocket.
+      // Validity (XScore Value_Atom): valid if typed via a fallback template,
+      // invalid if no template matched.
       layer.valid(i) = found ? x_score_validity::valid : x_score_validity::invalid;
 
       // todo: debugging line shows atoms who's xtool type has been determined via fallback methods
