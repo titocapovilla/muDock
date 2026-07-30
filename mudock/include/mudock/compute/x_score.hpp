@@ -120,6 +120,9 @@ namespace mudock {
       lig_hbt.alloc(batch_ligands); // per-ligand host-computed hydrogen-bond term
       terms.alloc(batch_ligands * static_cast<int>(x_term_count));
 
+#ifdef _OPENMP
+  #pragma omp parallel for schedule(dynamic)
+#endif
       for (int ligand_index = 0; ligand_index < batch_ligands; ++ligand_index) {
         auto &ligand           = *batch.molecules[ligand_index];
         const int stride_atoms = ligand_index * batch_atoms;
