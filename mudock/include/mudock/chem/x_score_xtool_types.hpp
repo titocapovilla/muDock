@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <mudock/chem/x_score_hb.hpp>
 #include <mudock/type_alias.hpp>
 #include <string_view>
 
@@ -177,7 +178,7 @@ namespace mudock {
     fp_type vdw_radius;
     fp_type vdw_potential;
     fp_type par_charge;
-    std::string_view hbond;
+    x_score_hb hbond;
     };
     static constexpr auto num_xtool_ff() { return 72; }
     extern const std::array<xtool_ff_description, num_xtool_ff()> XTOOL_FF_DICTIONARY;

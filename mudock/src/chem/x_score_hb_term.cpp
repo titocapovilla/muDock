@@ -192,6 +192,7 @@ namespace mudock {
       std::vector<x_score_hb_atom> atoms;
       atoms.reserve(num_atoms);
 
+      // filtering of atoms that are not useful for Hydrogen Bonding
       for (int i = 0; i < num_atoms; ++i) {
         if (layer.valid(i) == x_score_validity::invalid)
           continue;

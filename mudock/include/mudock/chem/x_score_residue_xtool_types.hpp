@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <mudock/chem/x_score_hb.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <mudock/chem/residue.hpp>
 #include <mudock/type_alias.hpp>
@@ -25,7 +26,7 @@ namespace mudock {
     fp_type vdw_radius;
     fp_type vdw_potential;
     fp_type par_charge;
-    std::string_view hbond;
+    x_score_hb hbond;
     fp_type hydrophobic_scale;
     fp_type sas_parameter;
     int ring_indicator;

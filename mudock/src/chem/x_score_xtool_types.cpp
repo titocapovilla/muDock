@@ -110,7 +110,7 @@ namespace mudock {
       2.100,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -120,7 +120,7 @@ namespace mudock {
       2.100,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -130,7 +130,7 @@ namespace mudock {
       2.100,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -140,7 +140,7 @@ namespace mudock {
       1.900,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -150,7 +150,7 @@ namespace mudock {
       1.900,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -160,7 +160,7 @@ namespace mudock {
       1.900,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -170,7 +170,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -180,7 +180,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -190,7 +190,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -200,7 +200,7 @@ namespace mudock {
       1.800,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -210,7 +210,7 @@ namespace mudock {
       1.800,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -220,7 +220,7 @@ namespace mudock {
       1.800,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -230,7 +230,7 @@ namespace mudock {
       1.900,
       0.000,
       1.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -240,7 +240,7 @@ namespace mudock {
       1.800,
       0.000,
       0.000,
-      "D"
+      x_score_hb::D
     },
 
     {
@@ -250,7 +250,7 @@ namespace mudock {
       1.800,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -260,7 +260,7 @@ namespace mudock {
       1.800,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -270,7 +270,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "D"
+      x_score_hb::D
     },
 
     {
@@ -280,7 +280,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -290,7 +290,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -300,7 +300,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "DA"
+      x_score_hb::DA
     },
 
     {
@@ -310,7 +310,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "A"
+      x_score_hb::A
     },
 
     {
@@ -320,7 +320,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -330,7 +330,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "D"
+      x_score_hb::D
     },
 
     {
@@ -340,7 +340,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "A"
+      x_score_hb::A
     },
 
     {
@@ -350,7 +350,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -360,7 +360,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "A"
+      x_score_hb::A
     },
 
     {
@@ -370,7 +370,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -380,7 +380,7 @@ namespace mudock {
       1.800,
       0.000,
       1.000,
-      "D"
+      x_score_hb::D
     },
 
     {
@@ -390,7 +390,7 @@ namespace mudock {
       1.650,
       0.000,
       0.000,
-      "DA"
+      x_score_hb::DA
     },
 
     {
@@ -400,7 +400,7 @@ namespace mudock {
       1.650,
       0.000,
       0.000,
-      "A"
+      x_score_hb::A
     },
 
     {
@@ -410,7 +410,7 @@ namespace mudock {
       1.650,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -420,7 +420,7 @@ namespace mudock {
       1.550,
       0.000,
       0.000,
-      "A"
+      x_score_hb::A
     },
 
     {
@@ -430,7 +430,7 @@ namespace mudock {
       1.550,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -440,7 +440,7 @@ namespace mudock {
       1.550,
       0.000,
       -0.500,
-      "DA"
+      x_score_hb::DA
     },
 
     {
@@ -450,7 +450,7 @@ namespace mudock {
       2.100,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -460,7 +460,7 @@ namespace mudock {
       2.100,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -470,7 +470,7 @@ namespace mudock {
       2.100,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -480,7 +480,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -490,7 +490,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -500,7 +500,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -510,7 +510,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -520,7 +520,7 @@ namespace mudock {
       1.500,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -530,7 +530,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -540,7 +540,7 @@ namespace mudock {
       1.900,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -550,7 +550,7 @@ namespace mudock {
       2.050,
       0.000,
       0.000,
-      "H"
+      x_score_hb::H
     },
 
     {
@@ -560,7 +560,7 @@ namespace mudock {
       1.000,
       0.000,
       0.000,
-      "N"
+      x_score_hb::N
     },
 
     {
@@ -570,7 +570,7 @@ namespace mudock {
       1.000,
       0.000,
       0.000,
-      "DH"
+      x_score_hb::DH
     },
 
     {
@@ -580,7 +580,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "N"
+      x_score_hb::N
     },
 
     {
@@ -590,7 +590,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "DA"
+      x_score_hb::DA
     },
 
     {
@@ -600,7 +600,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -610,7 +610,7 @@ namespace mudock {
       0.000,
       0.000,
       0.000,
-      "N"
+      x_score_hb::N
     },
 
     // non xtool types added for type mismatch in residue
@@ -622,7 +622,7 @@ namespace mudock {
       1.750,
       0.000,
       0.000,
-      "D"
+      x_score_hb::D
     },
 
     //xlogp
@@ -633,7 +633,7 @@ namespace mudock {
       2.000,
       0.000,
       0.000,
-      "P"
+      x_score_hb::P
     },
 
     //ions
@@ -644,7 +644,7 @@ namespace mudock {
       1.250,
       0.000,
       1.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -654,7 +654,7 @@ namespace mudock {
       1.250,
       0.000,
       1.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -664,7 +664,7 @@ namespace mudock {
       1.250,
       0.000,
       1.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -674,7 +674,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -684,7 +684,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -694,7 +694,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -704,7 +704,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -714,7 +714,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -724,7 +724,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -734,7 +734,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -744,7 +744,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -754,7 +754,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -764,7 +764,7 @@ namespace mudock {
       1.250,
       0.000,
       2.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -774,7 +774,7 @@ namespace mudock {
       1.250,
       0.000,
       3.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -784,7 +784,7 @@ namespace mudock {
       1.250,
       0.000,
       3.000,
-      "M"
+      x_score_hb::M
     },
 
     {
@@ -794,7 +794,7 @@ namespace mudock {
       1.500,
       0.000,
       -1.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -804,7 +804,7 @@ namespace mudock {
       1.750,
       0.000,
       -1.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -814,7 +814,7 @@ namespace mudock {
       1.900,
       0.000,
       -1.000,
-      "P"
+      x_score_hb::P
     },
 
     {
@@ -824,7 +824,7 @@ namespace mudock {
       2.050,
       0.000,
       -1.000,
-      "P"
+      x_score_hb::P
     }
 
   }};

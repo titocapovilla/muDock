@@ -27,6 +27,10 @@ namespace mudock {
 
   // Parse the XScore hydrogen-bonding token ("N"/"H"/"P"/"D"/"A"/"DA"/"DH"/"M") into the enum.
   // Unknown / empty tokens map to N (none), matching XScore's neutral default.
+  //
+  // Not on the runtime path: the X-Tool / residue / XLogP dictionaries store `hbond` directly as
+  // x_score_hb, so typing assigns it without any string comparison. Kept for the source generators
+  // and for parsing raw XScore parameter files.
   inline x_score_hb parse_x_score_hb(const std::string_view token) {
     if (token == "H")
       return x_score_hb::H;

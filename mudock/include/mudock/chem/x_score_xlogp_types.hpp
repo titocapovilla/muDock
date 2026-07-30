@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <mudock/chem/x_score_hb.hpp>
 #include <mudock/type_alias.hpp>
 #include <string_view>
 
@@ -244,7 +245,7 @@ namespace mudock {
   struct xlogp_ff_description {
     xlogp_ff value;
     std::string_view name;
-    std::string_view hbond;
+    x_score_hb hbond;
     fp_type hydrophobic_scale;
   };
   static constexpr auto num_xlogp_ff() { return 112; }
