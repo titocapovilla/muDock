@@ -4,11 +4,23 @@
 # (x_score_bench) and the original XScore, writing a side-by-side comparison of the raw terms that are
 # currently implemented (VDW HB HP RT) to output.txt.
 #
+# On top of the human-readable comparison, every pair is checked term by term: both values are ROUNDED
+# to three decimals and the rounded results must be equal. Rounding, not truncation -- 1.9325 becomes
+# 1.933, not 1.932. Note the consequence: two values may agree to within 1e-4 and still round to
+# different results when they straddle a x.xxx5 boundary, so a MISMATCH is not by itself evidence of a
+# larger disagreement. The raw delta is printed next to every mismatch so that case is recognisable.
+#
 # Terms are being re-introduced one at a time; extend the *_RE regexes below as new terms come online.
 #
-# Usage:  ./test.sh
+# Usage:  ./test.sh          ; exit status is 0 only if every pair matches
 #
 set -u
+
+# printf must use '.' as the decimal separator for the rounding below to behave.
+export LC_ALL=C
+
+# Number of decimals the comparison rounds to.
+ROUND_DECIMALS=3
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -36,6 +48,21 @@ terms_of() {
   hp="$(printf '%s\n' "$text"  | grep -oE 'HP=[^ ]+'  | head -1)"
   rt="$(printf '%s\n' "$text"  | grep -oE 'RT=[^ ]+'  | head -1)"
   echo "${vdw:-VDW=?} ${hb:-HB=?} ${hp:-HP=?} ${rt:-RT=?}"
+}
+
+# Pull a single term's value out of a "VDW=<> HB=<> HP=<> RT=<>" string.
+value_of() {
+  # $1 = terms string, $2 = term name ; echoes the bare value ("?" when the tool printed nothing)
+  printf '%s\n' "$1" | tr ' ' '\n' | sed -n "s/^$2=//p" | head -1
+}
+
+# Round a value to ROUND_DECIMALS decimals. A missing value stays "?" so it can never compare equal.
+round() {
+  # $1 = value
+  case "$1" in
+    ''|'?') printf '?' ;;
+    *) printf "%.${ROUND_DECIMALS}f" "$1" ;;
+  esac
 }
 
 # --- sanity checks ---
@@ -77,6 +104,9 @@ EOF
 }
 
 count=0
+ok_count=0
+fail_count=0
+failed_pairs=""
 for pdb in "$PROT_DIR"/*_protein.pdb; do
   [ -e "$pdb" ] || continue
   name="$(basename "$pdb" _protein.pdb)"
@@ -90,13 +120,68 @@ for pdb in "$PROT_DIR"/*_protein.pdb; do
   md="$(terms_of "$("$BENCH" -p "$pdb" -l "$lig" 2>&1)")"
   xs="$(terms_of "$(run_xscore "$name" "$pdb" "$lig")")"
 
+  # Term-by-term check: round both values to ROUND_DECIMALS decimals and require equality.
+  pair_ok=1
+  mismatches=""
+  bad_terms=""
+  for term in VDW HB HP RT; do
+    mv="$(value_of "$md" "$term")"
+    xv="$(value_of "$xs" "$term")"
+    mr="$(round "$mv")"
+    xr="$(round "$xv")"
+    if [ "$mr" != '?' ] && [ "$mr" = "$xr" ]; then
+      continue
+    fi
+    pair_ok=0
+    bad_terms="$bad_terms$term,"
+    if [ "$mr" = '?' ] || [ "$xr" = '?' ]; then
+      mismatches="$mismatches
+    MISMATCH  $term  mudock=${mv:-?} xscore=${xv:-?}  (term missing from one of the two tools)"
+    else
+      delta="$(awk -v a="$mv" -v b="$xv" 'BEGIN{d=a-b; if(d<0)d=-d; printf "%.3e", d}')"
+      mismatches="$mismatches
+    MISMATCH  $term  mudock=$mv -> $mr   xscore=$xv -> $xr   (raw delta $delta)"
+    fi
+  done
+
   {
     echo "$name"
     echo "    mudock    ${md:-<no output>}"
     echo "    xscore    ${xs:-<no output>}"
+    if [ "$pair_ok" -eq 1 ]; then
+      echo "    check     OK (all terms equal when rounded to $ROUND_DECIMALS decimals)"
+    else
+      printf '%s\n' "    check     FAILED${mismatches}"
+    fi
     echo
   } >> "$OUT"
+
+  if [ "$pair_ok" -eq 1 ]; then
+    ok_count=$((ok_count + 1))
+  else
+    fail_count=$((fail_count + 1))
+    failed_pairs="$failed_pairs $name(${bad_terms%,})"
+  fi
   count=$((count + 1))
 done
 
+# --- summary, written to both the report and the terminal ---
+summary="$(
+  echo "=== SUMMARY ==="
+  echo "pairs compared : $count"
+  echo "matching       : $ok_count"
+  echo "mismatching    : $fail_count"
+  echo "criterion      : every term equal after rounding to $ROUND_DECIMALS decimals"
+  if [ "$fail_count" -gt 0 ]; then
+    echo "mismatching pairs:$failed_pairs"
+  fi
+)"
+printf '%s\n' "$summary" >> "$OUT"
+printf '%s\n' "$summary"
+
 echo "Done: $count pair(s) written to $OUT"
+
+if [ "$fail_count" -gt 0 ]; then
+  exit 1
+fi
+exit 0
