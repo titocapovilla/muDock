@@ -222,6 +222,12 @@ namespace mudock {
           }
         }
 
+        // XScore's Ligand::Calculate_HB_Root rewrites hb to "P" when an HB atom has no heavy
+        // neighbour. atom is dropped from Get_HBond_Pair_PL.
+        // Ligand-only
+        if (!is_protein && num_nonh == 0)
+          continue;
+
         x_score_hb_atom a;
         a.x        = mol.x(i);
         a.y        = mol.y(i);

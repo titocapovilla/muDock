@@ -780,6 +780,7 @@ namespace mudock {
                 mol.atom_type(i)            = atom_tmpl.basic_atom_type;
                 layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
                 layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+                layer.hb(i)                 = atom_tmpl.hbond;
                 found                       = true;
                 break;
               }
@@ -829,6 +830,7 @@ namespace mudock {
                 mol.atom_type(i)            = atom_tmpl.basic_atom_type;
                 layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
                 layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+                layer.hb(i)                 = atom_tmpl.hbond;
                 found                       = true;
                 break;
               }
@@ -861,6 +863,7 @@ namespace mudock {
                 mol.atom_type(i)            = atom_tmpl.basic_atom_type;
                 layer.x_score_xtool_type(i) = atom_tmpl.x_tool_atom_type;
                 layer.vdw_radius(i)         = atom_tmpl.vdw_radius;
+                layer.hb(i)                 = atom_tmpl.hbond;
                 found                       = true;
                 break;
               }
