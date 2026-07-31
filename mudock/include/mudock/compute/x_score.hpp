@@ -228,8 +228,8 @@ namespace mudock {
     buffer_vector<int, queue_type> prot_scorable;
     buffer_vector<int, queue_type> prot_hb;
 
-    // protein hydrogen-bond donor/acceptor atom list, saved once for the whole batch
-    std::vector<x_score_hb_atom> prot_hb_atoms;
+    // protein hydrogen-bond donor/acceptor atom data, saved once for the whole batch
+    x_score_hb_atoms prot_hb_atoms;
 
     // per-ligand raw X-Score terms (x_term_count contiguous values per ligand)
     buffer_vector<fp_type, queue_type> terms;

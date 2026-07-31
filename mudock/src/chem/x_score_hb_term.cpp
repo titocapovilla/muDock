@@ -182,15 +182,41 @@ namespace mudock {
       return is_protein && hb == x_score_hb::M;
     }
 
+    // Sum_HBonds step 3: a donor forms at most as many H-bonds as the hydrogens it carries, and at
+    // most one when it is both donor and acceptor. Precomputed here so the filtering loop does not
+    // have to carry num_h around.
+    int donor_limit_of(const x_score_hb hb, const int num_h) {
+      return (hb == x_score_hb::DA) ? 1 : num_h;
+    }
+
+    // Sum_HBonds step 4: an acceptor forms at most as many H-bonds as its lone pairs. XScore keys
+    // this off the first character of the atom type: N gets 1, O and S get 2, and anything else
+    // keeps the default of 2.
+    int acceptor_limit_of(const xtool_ff basic) { return (element_of(basic) == 'N') ? 1 : 2; }
+
     template<typename layer_t>
-    std::vector<x_score_hb_atom> build_hb_atoms(const layer_t& layer, const bool is_protein) {
+    x_score_hb_atoms build_hb_atoms(const layer_t& layer, const bool is_protein) {
       const auto& mol     = layer.get_base_molecule();
       const int num_atoms = static_cast<int>(mol.num_atoms());
       const int origin    = is_protein ? 2 : 1;
       const auto adj      = build_adjacency(layer, num_atoms);
 
-      std::vector<x_score_hb_atom> atoms;
-      atoms.reserve(num_atoms);
+      // Upper bound: at most one entry per atom. All arrays grow together, one push per array in
+      // the loop below, so they stay the same length.
+      x_score_hb_atoms atoms;
+      atoms.x.reserve(num_atoms);
+      atoms.y.reserve(num_atoms);
+      atoms.z.reserve(num_atoms);
+      atoms.root_x.reserve(num_atoms);
+      atoms.root_y.reserve(num_atoms);
+      atoms.root_z.reserve(num_atoms);
+      atoms.radius.reserve(num_atoms);
+      atoms.hb.reserve(num_atoms);
+      atoms.donor_type.reserve(num_atoms);
+      atoms.acceptor_type.reserve(num_atoms);
+      atoms.donor_limit.reserve(num_atoms);
+      atoms.acceptor_limit.reserve(num_atoms);
+      atoms.has_root.reserve(num_atoms);
 
       // filtering of atoms that are not useful for Hydrogen Bonding
       for (int i = 0; i < num_atoms; ++i) {
@@ -228,26 +254,25 @@ namespace mudock {
         if (!is_protein && num_nonh == 0)
           continue;
 
-        x_score_hb_atom a;
-        a.x        = mol.x(i);
-        a.y        = mol.y(i);
-        a.z        = mol.z(i);
-        a.radius   = layer.vdw_radius(i);
-        a.hb       = static_cast<int>(hb);
-        a.is_metal = (hb == x_score_hb::M);
-        a.is_water = false;
-        a.num_h    = num_h;
-        a.element  = element_of(basic);
+        atoms.x.push_back(mol.x(i));
+        atoms.y.push_back(mol.y(i));
+        atoms.z.push_back(mol.z(i));
+        atoms.radius.push_back(layer.vdw_radius(i));
+        atoms.hb.push_back(hb);
+
+        // An atom with no heavy neighbour keeps its own position as root and is flagged, so the
+        // angular term is skipped for it (XScore leaves such a root unset).
         if (num_nonh > 0) {
-          a.rx       = rx / num_nonh;
-          a.ry       = ry / num_nonh;
-          a.rz       = rz / num_nonh;
-          a.has_root = true;
+          const fp_type n = static_cast<fp_type>(num_nonh);
+          atoms.root_x.push_back(rx / n);
+          atoms.root_y.push_back(ry / n);
+          atoms.root_z.push_back(rz / n);
+          atoms.has_root.push_back(1);
         } else {
-          a.rx = a.x;
-          a.ry = a.y;
-          a.rz = a.z;
-          a.has_root = false;
+          atoms.root_x.push_back(mol.x(i));
+          atoms.root_y.push_back(mol.y(i));
+          atoms.root_z.push_back(mol.z(i));
+          atoms.has_root.push_back(0);
         }
 
         const xtool_ff xtype = layer.x_score_xtool_type(i);
@@ -259,29 +284,42 @@ namespace mudock {
           if (rid >= 0 && rid < num_residues())
             residue = get_description(mol.residue_types(i)).name;
         }
-        a.donor_type    = get_donor_type(origin, basic, xtype, num_nonh, hb, name, residue);
-        a.acceptor_type = get_acceptor_type(origin, basic, xtype, num_nonh, hb);
+        atoms.donor_type.push_back(get_donor_type(origin, basic, xtype, num_nonh, hb, name, residue));
+        atoms.acceptor_type.push_back(get_acceptor_type(origin, basic, xtype, num_nonh, hb));
 
-        atoms.push_back(a);
+        // Saturation limits are only read on the ligand side, but computing them for both keeps the
+        // two lists structurally identical.
+        atoms.donor_limit.push_back(donor_limit_of(hb, num_h));
+        atoms.acceptor_limit.push_back(acceptor_limit_of(basic));
       }
 
       return atoms;
     }
 
 
-    fp_type value_hbond_2(const x_score_hb_atom& D, const x_score_hb_atom& A) {
-      const fp_type dco[3] = {D.x, D.y, D.z};
-      const fp_type aco[3] = {A.x, A.y, A.z};
-      const fp_type dro[3] = {D.rx, D.ry, D.rz};
-      const fp_type aro[3] = {A.rx, A.ry, A.rz};
+    // `donor`/`acceptor` name the two roles, `di`/`ai` the entry each role refers to. The two may
+    // come from the same list or from different ones depending on the H-bond type.
+    fp_type value_hbond_2(const x_score_hb_atoms& donor,
+                          const int di,
+                          const x_score_hb_atoms& acceptor,
+                          const int ai) {
+      const fp_type dco[3] = {donor.x[di], donor.y[di], donor.z[di]};
+      const fp_type aco[3] = {acceptor.x[ai], acceptor.y[ai], acceptor.z[ai]};
+      const fp_type dro[3] = {donor.root_x[di], donor.root_y[di], donor.root_z[di]};
+      const fp_type aro[3] = {acceptor.root_x[ai], acceptor.root_y[ai], acceptor.root_z[ai]};
 
-      const fp_type d = std::sqrt((D.x - A.x) * (D.x - A.x) + (D.y - A.y) * (D.y - A.y) +
-                                  (D.z - A.z) * (D.z - A.z));
+      const fp_type dx = dco[0] - aco[0], dy = dco[1] - aco[1], dz = dco[2] - aco[2];
+      const fp_type d  = std::sqrt(dx * dx + dy * dy + dz * dz);
+
+      // A metal ion has no meaningful bonding direction, so its angular term is skipped. XScore
+      // also skipped waters here, but waters never reach this point (filtered in build_hb_atoms).
+      const bool donor_is_metal    = donor.hb[di] == x_score_hb::M;
+      const bool acceptor_is_metal = acceptor.hb[ai] == x_score_hb::M;
 
       // DR-D-A angle
-      bool mark1   = false;
-      fp_type a1   = 0;
-      if (!(D.is_metal || D.is_water) && D.has_root) {
+      bool mark1 = false;
+      fp_type a1 = 0;
+      if (!donor_is_metal && donor.has_root[di]) {
         a1    = fp_type{180} - angle_abc(dro, dco, aco);
         mark1 = true;
       }
@@ -289,15 +327,15 @@ namespace mudock {
       // D-A-AR angle
       bool mark2 = false;
       fp_type a2 = 0;
-      if (!(A.is_metal || A.is_water) && A.has_root) {
+      if (!acceptor_is_metal && acceptor.has_root[ai]) {
         a2    = fp_type{180} - angle_abc(dco, aco, aro);
         mark2 = true;
       }
 
-      const int d_type = D.donor_type;
-      const int a_type = A.acceptor_type;
+      const int d_type = donor.donor_type[di];
+      const int a_type = acceptor.acceptor_type[ai];
 
-      const fp_type d0 = D.radius + A.radius;
+      const fp_type d0 = donor.radius[di] + acceptor.radius[ai];
       const fp_type d1 = 0, d2 = 1, d3 = d0 - fp_type{0.4}, d4 = d0 + fp_type{0.2};
 
       fp_type tmp1;
@@ -333,35 +371,32 @@ namespace mudock {
 
   } // namespace
 
-  std::vector<x_score_hb_atom> build_protein_hb_atoms(const x_score_protein& prot) {
+  // ---- Step 1: per-molecule preparation ------------------------------------------------------
+
+  x_score_hb_atoms build_protein_hb_atoms(const x_score_protein& prot) {
     return build_hb_atoms(prot, /*is_protein=*/true);
   }
 
-  std::vector<x_score_hb_atom> build_ligand_hb_atoms(const x_score_ligand& lig) {
+  x_score_hb_atoms build_ligand_hb_atoms(const x_score_ligand& lig) {
     return build_hb_atoms(lig, /*is_protein=*/false);
   }
 
-  fp_type compute_x_score_hb(const std::vector<x_score_hb_atom>& lig_atoms,
-                             const std::vector<x_score_hb_atom>& prot_atoms) {
+  // ---- Step 2: candidate generation (Get_HBond_Pair_PL) ---------------------------------------
+
+  std::vector<x_score_hb_candidate> get_hbond_pair_pl(const x_score_hb_atoms& lig_atoms,
+                                                      const x_score_hb_atoms& prot_atoms) {
     constexpr fp_type cutoff = fp_type{5.0};
 
-    // One candidate H-bond between a ligand atom and a protein atom.
-    struct candidate {
-      int li;       // index into lig_atoms (== latom group key)
-      int pj;       // index into prot_atoms
-      int type;     // 1: lig donor; 2: lig acceptor / prot donor; 3: lig acceptor / metal
-      fp_type score;
-    };
-    std::vector<candidate> cand;
+    std::vector<x_score_hb_candidate> candidates;
+    const int num_lig  = lig_atoms.size();
+    const int num_prot = prot_atoms.size();
 
-    // Get_HBond_Pair_PL: generate scored candidates
-    for (int li = 0; li < static_cast<int>(lig_atoms.size()); ++li) {
-      const auto& L = lig_atoms[li];
-      const auto lhb = static_cast<x_score_hb>(L.hb);
+    for (int li = 0; li < num_lig; ++li) {
+      const x_score_hb lhb = lig_atoms.hb[li];
+      const fp_type lx = lig_atoms.x[li], ly = lig_atoms.y[li], lz = lig_atoms.z[li];
 
-      for (int pj = 0; pj < static_cast<int>(prot_atoms.size()); ++pj) {
-        const auto& P  = prot_atoms[pj];
-        const auto phb = static_cast<x_score_hb>(P.hb);
+      for (int pj = 0; pj < num_prot; ++pj) {
+        const x_score_hb phb = prot_atoms.hb[pj];
 
         // determine the H-bond type from the donor/acceptor characters
         int type = 0;
@@ -384,92 +419,103 @@ namespace mudock {
         if (type == 0)
           continue;
 
-        const fp_type d = std::sqrt((L.x - P.x) * (L.x - P.x) + (L.y - P.y) * (L.y - P.y) +
-                                    (L.z - P.z) * (L.z - P.z));
+        const fp_type dx = lx - prot_atoms.x[pj];
+        const fp_type dy = ly - prot_atoms.y[pj];
+        const fp_type dz = lz - prot_atoms.z[pj];
+        const fp_type d  = std::sqrt(dx * dx + dy * dy + dz * dz);
         if (d > cutoff)
           continue;
 
         // donor/acceptor assignment then geometric strength
         fp_type score;
         if (type == 1)
-          score = value_hbond_2(L, P); // ligand donor, protein acceptor
+          score = value_hbond_2(lig_atoms, li, prot_atoms, pj); // ligand donor, protein acceptor
         else
-          score = value_hbond_2(P, L); // protein donor (or metal), ligand acceptor
+          score = value_hbond_2(prot_atoms, pj, lig_atoms, li); // protein donor (or metal), ligand acceptor
 
         if (std::fabs(score) > fp_type{0})
-          cand.push_back({li, pj, type, score});
+          candidates.push_back({li, pj, type, score});
       }
     }
 
-    const int n = static_cast<int>(cand.size());
+    return candidates;
+  }
 
-    // Sum_HBonds: rank and filter
+  // ---- Step 3: ranking, filtering and summation (Sum_HBonds) ----------------------------------
+
+  fp_type sum_hbonds(std::vector<x_score_hb_candidate>& candidates,
+                     const x_score_hb_atoms& lig_atoms,
+                     const x_score_hb_atoms& prot_atoms) {
+    const int n = static_cast<int>(candidates.size());
+
     // Step 1: decreasing |score|
-    std::stable_sort(cand.begin(), cand.end(), [](const candidate& a, const candidate& b) {
-      return std::fabs(a.score) > std::fabs(b.score);
-    });
+    std::stable_sort(candidates.begin(),
+                     candidates.end(),
+                     [](const x_score_hb_candidate& a, const x_score_hb_candidate& b) {
+                       return std::fabs(a.score) > std::fabs(b.score);
+                     });
 
     // Step 2: two H-bonds on the same ligand atom must be at least 45 degrees apart
     for (int i = 0; i < n - 1; ++i)
       for (int j = i + 1; j < n; ++j) {
-        if (cand[i].li != cand[j].li)
+        if (candidates[i].li != candidates[j].li)
           continue;
-        const auto& Li = lig_atoms[cand[i].li];
-        const auto& Pi = prot_atoms[cand[i].pj];
-        const auto& Lj = lig_atoms[cand[j].li];
-        const auto& Pj = prot_atoms[cand[j].pj];
-        const fp_type v1[3] = {Pi.x - Li.x, Pi.y - Li.y, Pi.z - Li.z};
-        const fp_type v2[3] = {Pj.x - Lj.x, Pj.y - Lj.y, Pj.z - Lj.z};
+        const int li = candidates[i].li, pi = candidates[i].pj;
+        const int lj = candidates[j].li, pj = candidates[j].pj;
+        const fp_type v1[3] = {prot_atoms.x[pi] - lig_atoms.x[li],
+                               prot_atoms.y[pi] - lig_atoms.y[li],
+                               prot_atoms.z[pi] - lig_atoms.z[li]};
+        const fp_type v2[3] = {prot_atoms.x[pj] - lig_atoms.x[lj],
+                               prot_atoms.y[pj] - lig_atoms.y[lj],
+                               prot_atoms.z[pj] - lig_atoms.z[lj]};
         const fp_type angle = std::fabs(angle_of_two_vectors(v1, v2));
         if (angle < fp_type{45})
-          cand[j].score = 0;
+          candidates[j].score = 0;
       }
 
     // Step 3: a donor ligand atom forms no more H-bonds than the hydrogens it carries
     for (int i = 0; i < n - 1; ++i) {
-      if (cand[i].type != 1)
+      if (candidates[i].type != 1)
         continue;
-      int count          = 1;
-      const auto& L      = lig_atoms[cand[i].li];
-      const int limit    = (static_cast<x_score_hb>(L.hb) == x_score_hb::DA) ? 1 : L.num_h;
+      int count       = 1;
+      const int limit = lig_atoms.donor_limit[candidates[i].li];
       for (int j = i + 1; j < n; ++j) {
-        if (cand[j].type != 1 || cand[i].li != cand[j].li)
+        if (candidates[j].type != 1 || candidates[i].li != candidates[j].li)
           continue;
         ++count;
         if (count > limit)
-          cand[j].score = 0;
+          candidates[j].score = 0;
       }
     }
 
     // Step 4: an acceptor ligand atom forms no more H-bonds than its lone pairs
     for (int i = 0; i < n - 1; ++i) {
-      if (cand[i].type != 2 && cand[i].type != 3)
+      if (candidates[i].type != 2 && candidates[i].type != 3)
         continue;
-      int count     = 1;
-      const auto& L = lig_atoms[cand[i].li];
-      int limit     = 2;
-      if (L.element == 'O')
-        limit = 2;
-      else if (L.element == 'N')
-        limit = 1;
-      else if (L.element == 'S')
-        limit = 2;
+      int count       = 1;
+      const int limit = lig_atoms.acceptor_limit[candidates[i].li];
       for (int j = i + 1; j < n; ++j) {
-        if ((cand[j].type != 2 && cand[j].type != 3) || cand[i].li != cand[j].li)
+        if ((candidates[j].type != 2 && candidates[j].type != 3) ||
+            candidates[i].li != candidates[j].li)
           continue;
         ++count;
         if (count > limit)
-          cand[j].score = 0;
+          candidates[j].score = 0;
       }
     }
 
     // sum the surviving contributions
     fp_type sum = 0;
-    for (const auto& c: cand)
+    for (const auto& c: candidates)
       if (std::fabs(c.score) >= fp_type{0.01})
         sum += c.score;
 
     return sum;
+  }
+
+  fp_type compute_x_score_hb(const x_score_hb_atoms& lig_atoms, const x_score_hb_atoms& prot_atoms) {
+    auto candidates = get_hbond_pair_pl(lig_atoms, prot_atoms);
+    return sum_hbonds(candidates, lig_atoms, prot_atoms);
   }
 
 } // namespace mudock
