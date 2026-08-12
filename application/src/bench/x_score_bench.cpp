@@ -1,5 +1,6 @@
 #include "command_line_args.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <fstream>
 #include <memory>
@@ -27,30 +28,35 @@ int main(int argc, char* argv[]) {
         auto input_text   = read_from_stream(std::ifstream(args.ligand_path));
         mudock::splitter<mudock::type_of_format<static_cast<mudock::supported_format>(format_index())>> split;
         auto ligands_description = split(std::move(input_text));
-        ligands_description.emplace_back(split.flush());
+        if (auto remainder = split.flush(); !remainder.empty()) {
+          ligands_description.emplace_back(std::move(remainder));
+        }
         input_queue->initialize(ligands_description.size());
 
         mudock::info("Parsing ", ligands_description.size(), " ligand(s) ...");
+        std::atomic<std::size_t> skipped_ligands{0};
         if constexpr (format == mudock::supported_format::ADTMOL2) {
 #ifdef _OPENMP
-  #pragma omp parallel for shared(input_queue)
+  #pragma omp parallel for shared(input_queue, ligands_description, skipped_ligands)
 #endif
-          for (const auto& description: ligands_description) {
-            auto ligand = std::make_unique<mudock::static_molecule>(
-                mudock::parser<mudock::supported_format::ADTMOL2, mudock::static_molecule>(description));
-            input_queue->enqueue(ligand);
-          }
-        } else {
-          // Non-ADTMOL2 formats go through OpenBabel perception, which does not preserve the raw
-          // SYBYL token X-Score relies on. The authoritative SYBYL types are carried only by the
-          // native ADTMOL2 reader, so for correct X-Score typing convert ligands to .adtmol2 first.
-          for (const auto& description: ligands_description) {
+          for (std::size_t ligand_index = 0; ligand_index < ligands_description.size(); ++ligand_index) {
             try {
               auto ligand = std::make_unique<mudock::static_molecule>(
-                  mudock::parser<format, mudock::static_molecule>(description));
+                  mudock::parser<format, mudock::static_molecule>(ligands_description[ligand_index]));
               input_queue->enqueue(ligand);
-            } catch (...) {}
+            } catch (...) { skipped_ligands.fetch_add(1, std::memory_order_relaxed); }
           }
+        } else {
+          for (std::size_t ligand_index = 0; ligand_index < ligands_description.size(); ++ligand_index) {
+            try {
+              auto ligand = std::make_unique<mudock::static_molecule>(
+                  mudock::parser<format, mudock::static_molecule>(ligands_description[ligand_index]));
+              input_queue->enqueue(ligand);
+            } catch (...) { skipped_ligands.fetch_add(1, std::memory_order_relaxed); }
+          }
+        }
+        if (const auto skipped = skipped_ligands.load(std::memory_order_relaxed); skipped > 0) {
+          mudock::error("Skipped ", skipped, " ligand(s) due to parse errors.");
         }
       },
       in_format);
