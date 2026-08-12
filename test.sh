@@ -2,7 +2,13 @@
 #
 # Runs every ligand/protein pair found in the muDock test sets through both muDock's X-Score
 # (x_score_bench) and the original XScore, writing a side-by-side comparison of the raw terms that are
-# currently implemented (VDW HB HP RT) to output.txt.
+# currently implemented (VDW HB HP RT) plus the affinity they predict (PKD) to output.txt.
+#
+# PKD is XScore's pkd1, the HPScore prediction -- of the three -log(Kd) values XScore reports, the only
+# one whose regression uses exactly the four terms muDock implements:
+#     pKd = 3.441 + 0.004*VDW + 0.054*HB + 0.009*HP - 0.061*RT
+# XScore's other two (HMScore, HSScore) need the HM / HS terms, which muDock does not compute, so they
+# are deliberately not compared.
 #
 # On top of the human-readable comparison, every pair is checked term by term: both values are ROUNDED
 # to three decimals and the rounded results must be equal. Rounding, not truncation -- 1.9325 becomes
@@ -36,21 +42,22 @@ OUT="$ROOT/output.txt"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-# Extract the currently-implemented terms (VDW, HB, HP, RT) from a tool's output. Each term is printed by
-# muDock and XScore as "VDW=<value>" / "HB=<value>" / "HP=<value>" / "RT=<value>"; we pull them
-# individually so the two tools can print different sets of terms (XScore also emits HM/HS) without
-# breaking the comparison.
+# Extract the currently-implemented terms (VDW, HB, HP, RT) and the resulting affinity (PKD) from a
+# tool's output. Each value is printed by muDock and XScore as "VDW=<value>" / "HB=<value>" /
+# "HP=<value>" / "RT=<value>" / "PKD=<value>"; we pull them individually so the two tools can print
+# different sets of terms (XScore also emits HM/HS) without breaking the comparison.
 terms_of() {
-  # $1 = raw multi-line tool output ; echoes "VDW=<> HB=<> HP=<> RT=<>"
-  local text="$1" vdw hb hp rt
+  # $1 = raw multi-line tool output ; echoes "VDW=<> HB=<> HP=<> RT=<> PKD=<>"
+  local text="$1" vdw hb hp rt pkd
   vdw="$(printf '%s\n' "$text" | grep -oE 'VDW=[^ ]+' | head -1)"
   hb="$(printf '%s\n' "$text"  | grep -oE 'HB=[^ ]+'  | head -1)"
   hp="$(printf '%s\n' "$text"  | grep -oE 'HP=[^ ]+'  | head -1)"
   rt="$(printf '%s\n' "$text"  | grep -oE 'RT=[^ ]+'  | head -1)"
-  echo "${vdw:-VDW=?} ${hb:-HB=?} ${hp:-HP=?} ${rt:-RT=?}"
+  pkd="$(printf '%s\n' "$text" | grep -oE 'PKD=[^ ]+' | head -1)"
+  echo "${vdw:-VDW=?} ${hb:-HB=?} ${hp:-HP=?} ${rt:-RT=?} ${pkd:-PKD=?}"
 }
 
-# Pull a single term's value out of a "VDW=<> HB=<> HP=<> RT=<>" string.
+# Pull a single term's value out of a "VDW=<> HB=<> HP=<> RT=<> PKD=<>" string.
 value_of() {
   # $1 = terms string, $2 = term name ; echoes the bare value ("?" when the tool printed nothing)
   printf '%s\n' "$1" | tr ' ' '\n' | sed -n "s/^$2=//p" | head -1
@@ -124,7 +131,7 @@ for pdb in "$PROT_DIR"/*_protein.pdb; do
   pair_ok=1
   mismatches=""
   bad_terms=""
-  for term in VDW HB HP RT; do
+  for term in VDW HB HP RT PKD; do
     mv="$(value_of "$md" "$term")"
     xv="$(value_of "$xs" "$term")"
     mr="$(round "$mv")"

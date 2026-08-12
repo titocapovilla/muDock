@@ -105,8 +105,11 @@ namespace mudock {
       fp_type *__restrict__ terms = terms_b + ligand_index * static_cast<int>(x_term_count);
       terms[x_term_vdw]           = vdw_sum;
       terms[x_term_hp]            = hp_sum;
-      terms[x_term_hb]            = lig_hbt_b[ligand_index]; 
+      terms[x_term_hb]            = lig_hbt_b[ligand_index];
       terms[x_term_rt]            = lig_rt_b[ligand_index];
+      // final HPScore affinity prediction, the value XScore reports as "HPScore -log(Kd)"
+      terms[x_term_pkd] =
+          compute_x_score_pkd(terms[x_term_vdw], terms[x_term_hb], terms[x_term_hp], terms[x_term_rt]);
     }
   };
 

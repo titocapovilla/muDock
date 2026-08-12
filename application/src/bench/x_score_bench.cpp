@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
   input_queue->send_terminate_signal(); // signal that no more ligand will be enqueued
 
-  mudock::info("Running X-Score (vdw, hp) batch scoring ...");
+  mudock::info("Running X-Score (vdw, hb, hp, rt -> pKd) batch scoring ...");
 
   mudock::x_score_pipeline pipe{protein};
   auto output_queue = std::make_shared<mudock::safe_queue<mudock::static_molecule>>();
