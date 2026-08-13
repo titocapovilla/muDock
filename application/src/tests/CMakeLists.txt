@@ -33,6 +33,18 @@ target_link_libraries(test_grid libmudock Boost::program_options)
                 CXX_EXTENSIONS OFF)
   target_link_libraries(test_score_adt_impl libmudock Boost::program_options)
 
+  add_executable_mudock(test_score_x "${CMAKE_CURRENT_SOURCE_DIR}/x_score_test.cpp")
+  target_include_directories(test_score_x
+                              PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
+  target_compile_definitions(
+    test_score_x PRIVATE MUDOCK_CTEST_SKIP_RETURN_CODE=${MUDOCK_CTEST_SKIP_RETURN_CODE})
+  set_target_properties(
+    test_score_x
+    PROPERTIES CXX_STANDARD 20
+                CXX_STANDARD_REQUIRED ON
+                CXX_EXTENSIONS OFF)
+  target_link_libraries(test_score_x libmudock Boost::program_options)
+
   add_executable_mudock(test_x_score_types
                           "${CMAKE_CURRENT_SOURCE_DIR}/test_x_score_types.cpp")
     target_include_directories(test_x_score_types
