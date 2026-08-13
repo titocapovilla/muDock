@@ -35,6 +35,10 @@ namespace mudock {
   // to the kernel so every term lands in the same per-ligand terms buffer. HB pairs the ligand against the
   // protein donor/acceptor list built once in the constructor.
   //
+  // The kernel folds the four terms into the reported score with X-Score's HPScore regression
+  // (compute_x_score_pkd), so a pose's score is a predicted -log(Kd) directly comparable to the
+  // "HPScore -log(Kd)" XScore prints.
+  //
   // XScore's pocket filter is unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) so not implemented
   template<typename queue_type>
   struct x_score: public scoring<queue_type> {
@@ -265,14 +269,16 @@ namespace mudock {
         const fp_type hb  = t[x_term_hb];
         const fp_type hp  = t[x_term_hp];
         const fp_type rt  = t[x_term_rt];
+        const fp_type pkd = t[x_term_pkd];
 
-
+        // the score of a pose is its predicted affinity, -log(Kd)
         for (std::size_t s = 0; s < scores_per_ligand; ++s)
-          scores_b()[i * scores_per_ligand + s] = vdw;
+          scores_b()[i * scores_per_ligand + s] = pkd;
 
         ligand.properties.assign(property_type::SCORE,
                                  "VDW=" + std::to_string(vdw) + " HB=" + std::to_string(hb) +
-                                     " HP=" + std::to_string(hp) + " RT=" + std::to_string(rt));
+                                     " HP=" + std::to_string(hp) + " RT=" + std::to_string(rt) +
+                                     " PKD=" + std::to_string(pkd));
       }
     }
   };
