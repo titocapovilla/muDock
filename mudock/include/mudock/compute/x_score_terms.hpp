@@ -5,7 +5,7 @@
 namespace mudock {
 
   // Layout of the raw X-Score energy terms (those calculated in X-Score's Calculate_Binding_Score)
-  //
+  // used to access the output array of the kernel (terms_b) containing the respective scores
   enum x_score_term : int {
     x_term_vdw = 0, // van der Waals        (Calculate_VDW)
     x_term_hb  = 1, // hydrogen bond        (Calculate_HB)

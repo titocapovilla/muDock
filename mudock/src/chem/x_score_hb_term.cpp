@@ -238,7 +238,7 @@ namespace mudock {
           if (is_hydrogen(mol.atom_type(nb))) {
             ++num_h;
           } else if (layer.hb(nb) == x_score_hb::M) {
-            // Exclude metal neighbours to match XScore.
+            // Exclude metal neighbours.
             continue;
           } else {
             rx += mol.x(nb);

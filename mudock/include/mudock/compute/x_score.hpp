@@ -39,7 +39,8 @@ namespace mudock {
   // (compute_x_score_pkd), so a pose's score is a predicted -log(Kd) directly comparable to the
   // "HPScore -log(Kd)" XScore prints.
   //
-  // XScore's pocket filter is unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) so not implemented
+  // XScore's pocket filter is unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) and for the HB term (5 Å cutoff is always within the 10 Å pocket)
+  // so not implemented
   template<typename queue_type>
   struct x_score: public scoring<queue_type> {
     x_score(std::shared_ptr<scratchpad<queue_type>> _scratch,
@@ -151,7 +152,8 @@ namespace mudock {
 
         // Hydrogen-bond (HB) term: geometric donor/acceptor pairing against protein list,
         // per-ligand filtering step
-        lig_hbt()[ligand_index] = compute_x_score_hb(build_ligand_hb_atoms(xs_lig), prot_hb_atoms);
+        x_score_hb_atoms lig_hb_atoms = build_ligand_hb_atoms(xs_lig);
+        lig_hbt()[ligand_index] = compute_x_score_hb(lig_hb_atoms, prot_hb_atoms);
       }
 
       lig_x.copy_host2device();
