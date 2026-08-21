@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <cmath>
+#include <concepts>
 #include <mudock/chem/x_score_hb_term.hpp>
 #include <mudock/chem/x_score_validity.hpp>
 #include <mudock/chem/x_score_xtool_types.hpp>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace mudock {
@@ -194,11 +196,19 @@ namespace mudock {
     // keeps the default of 2.
     int acceptor_limit_of(const xtool_ff basic) { return (element_of(basic) == 'N') ? 1 : 2; }
 
+    // Whether a layer describes the protein target or a ligand pose. The distinction is carried by
+    // the layer type itself, so build_hb_atoms below reads it at compile time rather than taking a
+    // flag that a caller could get wrong.
     template<typename layer_t>
-    x_score_hb_atoms build_hb_atoms(const layer_t& layer, const bool is_protein) {
+    constexpr bool is_protein_layer_v = std::same_as<std::remove_cvref_t<layer_t>, x_score_protein>;
+
+    template<typename layer_t>
+    x_score_hb_atoms build_hb_atoms(const layer_t& layer) {
+      constexpr bool is_protein = is_protein_layer_v<layer_t>;
+      constexpr int origin      = is_protein ? 2 : 1;
+
       const auto& mol     = layer.get_base_molecule();
       const int num_atoms = static_cast<int>(mol.num_atoms());
-      const int origin    = is_protein ? 2 : 1;
       const auto adj      = build_adjacency(layer, num_atoms);
 
       // Upper bound: at most one entry per atom. All arrays grow together, one push per array in
@@ -251,8 +261,10 @@ namespace mudock {
         // XScore's Ligand::Calculate_HB_Root rewrites hb to "P" when an HB atom has no heavy
         // neighbour. atom is dropped from Get_HBond_Pair_PL.
         // Ligand-only
-        if (!is_protein && num_nonh == 0)
-          continue;
+        if constexpr (!is_protein) {
+          if (num_nonh == 0)
+            continue;
+        }
 
         atoms.x.push_back(mol.x(i));
         atoms.y.push_back(mol.y(i));
@@ -277,7 +289,7 @@ namespace mudock {
 
         const xtool_ff xtype = layer.x_score_xtool_type(i);
         std::string_view name, residue;
-        if (is_protein) {
+        if constexpr (is_protein) {
           name = mol.atom_name(i);
 
           const int rid = static_cast<int>(mol.residue_types(i));
@@ -373,13 +385,9 @@ namespace mudock {
 
   // ---- Step 1: per-molecule preparation ------------------------------------------------------
 
-  x_score_hb_atoms build_protein_hb_atoms(const x_score_protein& prot) {
-    return build_hb_atoms(prot, /*is_protein=*/true);
-  }
+  x_score_hb_atoms build_protein_hb_atoms(const x_score_protein& prot) { return build_hb_atoms(prot); }
 
-  x_score_hb_atoms build_ligand_hb_atoms(const x_score_ligand& lig) {
-    return build_hb_atoms(lig, /*is_protein=*/false);
-  }
+  x_score_hb_atoms build_ligand_hb_atoms(const x_score_ligand& lig) { return build_hb_atoms(lig); }
 
   // ---- Step 2: candidate generation (Get_HBond_Pair_PL) ---------------------------------------
 
