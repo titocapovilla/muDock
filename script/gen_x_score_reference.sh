@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-#
+
 # Generates the X-Score reference values that `test_score_x` (ctest) checks muDock against.
 #
-# This is a DEVELOPER tool, not a test. It needs the original XScore v1.3 build.
+# It needs the original XScore v1.3 build.
 #
 # For every <dir>/<name>/ holding <name>_protein.pdb and <name>_ligand.mol2 it runs XScore and writes
 # <dir>/<name>/<name>_xscore.ref containing the four implemented terms plus the HPScore affinity.
@@ -13,7 +13,6 @@
 
 set -u
 
-# printf must use '.' as the decimal separator.
 export LC_ALL=C
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -28,16 +27,13 @@ trap 'rm -rf "$TMP"' EXIT
 [ -x "$XSCORE" ] || { echo "xscore binary not found at $XSCORE" >&2; exit 1; }
 [ -d "$XSCORE_PARAMETER" ] || { echo "XSCORE_PARAMETER not found at $XSCORE_PARAMETER" >&2; exit 1; }
 
-# Directories to walk; each contains one subdirectory per complex.
 if [ "$#" -gt 0 ]; then
   DIRS=("$@")
 else
   DIRS=("$ROOT/data" "$ROOT/data_xscore")
 fi
 
-# Run XScore on one pair and echo its raw output.
 run_xscore() {
-  # $1 = name, $2 = protein pdb, $3 = ligand mol2
   local name="$1" pdb="$2" lig="$3" inp="$TMP/$1.input"
   cat > "$inp" <<EOF
 FUNCTION            SCORE
@@ -75,8 +71,6 @@ for dir in "${DIRS[@]}"; do
 
     out="$(run_xscore "$name" "$pdb" "$lig")"
 
-    # XScore prints the terms as "VDW=<v> HB=<v> HP=<v> RT=<v> PKD=<v>"; PKD is pkd1 (HPScore), the
-    # only one of its three predictions whose regression uses exactly the four terms muDock ports.
     vdw="$(printf '%s\n' "$out" | grep -oE 'VDW=[^ ]+' | head -1 | cut -d= -f2)"
     hb="$( printf '%s\n' "$out" | grep -oE 'HB=[^ ]+'  | head -1 | cut -d= -f2)"
     hp="$( printf '%s\n' "$out" | grep -oE 'HP=[^ ]+'  | head -1 | cut -d= -f2)"

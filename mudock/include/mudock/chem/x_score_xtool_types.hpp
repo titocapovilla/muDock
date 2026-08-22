@@ -12,165 +12,160 @@
 
 namespace mudock {
 
-  // Forward declaration: the SYBYL -> X-Tool table below is keyed by this enum. Declared here (rather
-  // than including the full sybyl header) to keep this generated header lightweight; the definition in
-  // x_score_xtool_types.cpp includes chem/sybyl_atom_types.hpp for the concrete values.
   enum class sybyl_atom_type : int;
 
-  // List of all known atoms for X-TOOL force field
   enum class xtool_ff : int {
 
-    C3 = 0, // C3
+    C3 = 0,
 
-    C3x = 1, // C3x
+    C3x = 1,
 
-    C3un = 2, // C3un
+    C3un = 2,
 
-    C2 = 3, // C2
+    C2 = 3,
 
-    C2x = 4, // C2x
+    C2x = 4,
 
-    C2un = 5, // C2un
+    C2un = 5,
 
-    Car = 6, // Car
+    Car = 6,
 
-    Carx = 7, // Carx
+    Carx = 7,
 
-    Carun = 8, // Carun
+    Carun = 8,
 
-    C1 = 9, // C1
+    C1 = 9,
 
-    C1x = 10, // C1x
+    C1x = 10,
 
-    C1un = 11, // C1un
+    C1un = 11,
 
-    Ccat = 12, // Ccat
+    Ccat = 12,
 
-    N3h = 13, // N3h
+    N3h = 13,
 
-    N3 = 14, // N3
+    N3 = 14,
 
-    N3un = 15, // N3un
+    N3un = 15,
 
-    Npl3h = 16, // Npl3h
+    Npl3h = 16,
 
-    Npl3 = 17, // Npl3
+    Npl3 = 17,
 
-    Npl3un = 18, // Npl3un
+    Npl3un = 18,
 
-    N2h = 19, // N2h
+    N2h = 19,
 
-    N2 = 20, // N2
+    N2 = 20,
 
-    N2un = 21, // N2un
+    N2un = 21,
 
-    Narh = 22, // Narh
+    Narh = 22,
 
-    Nar = 23, // Nar
+    Nar = 23,
 
-    Narun = 24, // Narun
+    Narun = 24,
 
-    N1 = 25, // N1
+    N1 = 25,
 
-    N1un = 26, // N1un
+    N1un = 26,
 
-    N4 = 27, // N4
+    N4 = 27,
 
-    O3h = 28, // O3h
+    O3h = 28,
 
-    O3 = 29, // O3
+    O3 = 29,
 
-    O3un = 30, // O3un
+    O3un = 30,
 
-    O2 = 31, // O2
+    O2 = 31,
 
-    O2un = 32, // O2un
+    O2un = 32,
 
-    Oco2 = 33, // Oco2
+    Oco2 = 33,
 
-    S3h = 34, // S3h
+    S3h = 34,
 
-    S3 = 35, // S3
+    S3 = 35,
 
-    S3un = 36, // S3un
+    S3un = 36,
 
-    S2 = 37, // S2
+    S2 = 37,
 
-    S2un = 38, // S2un
+    S2un = 38,
 
-    So = 39, // So
+    So = 39,
 
-    P3 = 40, // P3
+    P3 = 40,
 
-    F = 41, // F
+    F = 41,
 
-    Cl = 42, // Cl
+    Cl = 42,
 
-    Br = 43, // Br
+    Br = 43,
 
-    I = 44, // I
+    I = 44,
 
-    H = 45, // H
+    H = 45,
 
-    Hhb = 46, // Hhb
+    Hhb = 46,
 
-    Si = 47, // Si
+    Si = 47,
 
-    Ow = 48, // Ow
+    Ow = 48,
 
-    Mplus = 49, // Mplus
+    Mplus = 49,
 
-    Un = 50, // Un
+    Un = 50,
 
     // non xtool types added for type mismatch in residue (added manually)
 
     //xlogp
-    Nam = 51, // Nam
+    Nam = 51,
 
-    So2 = 52, // So2
+    So2 = 52,
 
     //ions
-    Li = 53, // Li
+    Li = 53,
 
-    Na = 54, // Na
+    Na = 54,
 
-    K = 55, // K
+    K = 55,
 
-    Mg = 56, // Mg
+    Mg = 56,
 
-    Ca = 57, // Ca
+    Ca = 57,
 
-    Mn = 58, // Mn
+    Mn = 58,
 
-    Fe = 59, // Fe
+    Fe = 59,
 
-    Co = 60, // Co
+    Co = 60,
 
-    Ni = 61, // Ni
+    Ni = 61,
 
-    Cu = 62, // Cu
+    Cu = 62,
 
-    Zn = 63, // Zn
+    Zn = 63,
 
-    Cd = 64, // Cd
+    Cd = 64,
 
-    Hg = 65, // Hg
+    Hg = 65,
 
-    Al = 66, // Al
+    Al = 66,
 
-    U = 67, // U
+    U = 67,
 
-    Fminus = 68, // Fminus
+    Fminus = 68,
 
-    Clminus = 69, // Clminus
+    Clminus = 69,
 
-    Brminus = 70, // Brminus
+    Brminus = 70,
 
-    Iminus = 71, // Iminus
+    Iminus = 71,
 
     };
 
-    // Knowledge about the X-TOOL force field parameters
     struct xtool_ff_description {
     xtool_ff value;
     std::string_view name;
@@ -183,8 +178,6 @@ namespace mudock {
     static constexpr auto num_xtool_ff() { return 72; }
     extern const std::array<xtool_ff_description, num_xtool_ff()> XTOOL_FF_DICTIONARY;
 
-
-  // Utility function to get the description
   inline const xtool_ff_description& get_description(const xtool_ff a) {
     assert(XTOOL_FF_DICTIONARY[static_cast<int>(a)].value == a);
     return XTOOL_FF_DICTIONARY[static_cast<int>(a)];
@@ -192,9 +185,5 @@ namespace mudock {
 
   xtool_ff parse_xtool_type(const std::string_view symbol);
 
-  // Preliminary X-Tool force-field type for an authoritative SYBYL atom type. Data-driven replacement
-  // for the old "to_string(sybyl) -> strip '.' -> lower-case -> parse_xtool_type" round-trip. Returns
-  // xtool_ff::Un for UNKNOWN, pseudo-atoms and elements without an X-Tool parameter, so unsupported
-  // atoms are left untyped (and later flagged invalid) instead of throwing.
   xtool_ff xtool_type_from_sybyl(sybyl_atom_type type);
 } // namespace mudock

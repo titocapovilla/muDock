@@ -17,25 +17,16 @@ namespace mudock {
   struct x_score_layer: public molecule_layer<container_aliases> {
     template<typename T>
     using atoms_array_type = container_aliases::template atoms_size<T>;
-    // template<typename T>
-    // using bonds_array_type = container_aliases::template bonds_size<T>;
-
-    // data for the atoms
-
-
 
     x_score_layer(molecule<container_aliases>& _molecule) : molecule_layer<container_aliases>(_molecule) {
-        // Trigger the preparation phase
-        //resizing part
+
         const auto num_atoms = _molecule.num_atoms();
 
         mudock::resize(atom_x_score_xtool_type, num_atoms);
         mudock::resize(atom_x_score_xlogp_type, num_atoms);
         mudock::resize(atom_x_score_hb, num_atoms);
-
         mudock::resize(atom_vdw_radius, num_atoms);
         mudock::resize(atom_x_score_valid, num_atoms);
-        // todo: add resize of other xscore parameters
 
         prepare();
     }
@@ -88,27 +79,15 @@ namespace mudock {
 
 
   private:
-    // todo: for the 3 structures below getters, setters and resize are to be implemented
     atoms_array_type<xtool_ff> atom_x_score_xtool_type;
     atoms_array_type<xlogp_ff> atom_x_score_xlogp_type;
-    // per-atom hydrogen-bonding class (XScore -> atom.hb), dictionary
     atoms_array_type<x_score_hb> atom_x_score_hb;
-
-    // xtool radius
     atoms_array_type<fp_type> atom_vdw_radius;
-    // per-atom validity (XScore `valid`): invalid / valid / pocket
     atoms_array_type<x_score_validity> atom_x_score_valid;
-    //todo add other xlogp and xtool parameters as needed
 
-
-    // declared as virtual, implemented in subclasses
     void prepare() {
-      // 1. Assign xtool and xlogp types based on the residue type of each atom
-      // This will also assign parameters like vdw_radius
       assign_x_score_types((*this));
     }
-  
-  
   
   
   };

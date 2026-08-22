@@ -9,9 +9,7 @@ namespace mudock {
 
   namespace {
 
-    // Hybridization mark used by XScore's Get_Atom_Hybridizing_Type (molecule.cpp):
-    // sp = 1, sp2 = 2, sp3 = 3, none = 4. The classification is based on the basic SYBYL
-    // type (mol.atom_type), not the refined X-Tool type.
+    // XScore's Hybridization mark: sp = 1, sp2 = 2, sp3 = 3, none = 4 (basic (non-refined X-Tool type) SYBYL type based)
     int hybridizing_mark(const xtool_ff t) {
       switch (t) {
         case xtool_ff::C3:
@@ -22,7 +20,7 @@ namespace mudock {
         case xtool_ff::S3:
         case xtool_ff::So:
         case xtool_ff::So2:
-        case xtool_ff::Si: return 3; // sp3
+        case xtool_ff::Si: return 3;
         case xtool_ff::C2:
         case xtool_ff::Ccat:
         case xtool_ff::Car:
@@ -32,10 +30,10 @@ namespace mudock {
         case xtool_ff::Nam:
         case xtool_ff::O2:
         case xtool_ff::Oco2:
-        case xtool_ff::S2: return 2; // sp2
+        case xtool_ff::S2: return 2;
         case xtool_ff::C1:
-        case xtool_ff::N1: return 1; // sp
-        default: return 4;           // H, halogens, everything else
+        case xtool_ff::N1: return 1;
+        default: return 4;
       }
     }
 
@@ -52,7 +50,6 @@ namespace mudock {
     if (num_atoms == 0 || num_bonds == 0)
       return fp_type{0};
 
-    // Basic SYBYL type per atom (used for hybridization / hydrogen detection).
     const auto basic_type = mol.get_atom_type();
 
     // Adjacency: per-atom incident bonds and heavy-neighbor counts
@@ -69,8 +66,7 @@ namespace mudock {
         ++num_nonh[a2];
     }
 
-    // Ring-bond detection: a bond is in a ring if it is not a bridge, i.e. its endpoints
-    // remain connected after the bond is removed (XScore's Detect_Rings)
+    // Ring-bond detection: a bond is in a ring if it is not a bridge (graph theory): its endpoints remain connected after the bond is removed
     std::vector<char> bond_in_ring(num_bonds, 0);
     std::vector<char> visited(num_atoms, 0);
     std::vector<int> stack;
@@ -87,7 +83,7 @@ namespace mudock {
         stack.pop_back();
         for (const int nb: atom_bonds[cur]) {
           if (nb == b)
-            continue; // the bond under test is removed
+            continue; // tested bond is removed
           const int other = (bonds[nb].source == cur) ? bonds[nb].dest : bonds[nb].source;
           if (other == target) {
             reached = true;
@@ -102,7 +98,6 @@ namespace mudock {
       bond_in_ring[b] = reached ? 1 : 0;
     }
 
-    // Bond validity classification (XScore: 1 = normal, 2 = rotor candidate)
     std::vector<int> bond_valid(num_bonds, 1);
     for (int b = 0; b < num_bonds; ++b) {
       if (bond_in_ring[b])
@@ -112,15 +107,13 @@ namespace mudock {
       bond_valid[b] = 2;
     }
 
-    // helper: is the heavy atom 'atm' a symmetric terminal hub w.r.t. 'partner'?
-    // (XScore Judge_Terminal_Atom: sp3 center, exactly 4 heavy neighbors, the three non-partner
-    // ones are terminal heavy atoms carrying the same X-Tool type, e.g. -CMe3, -CF3, -PO3, -NMe3).
+    // helper (is the heavy atom 'atm' a symmetric terminal hub to 'partner'?)
     const auto judge_terminal = [&](const int atm, const int partner) -> bool {
       if (hybridizing_mark(basic_type[atm]) != 3)
         return false;
       if (num_nonh[atm] != 4)
         return false;
-      int reference = -1; // first non-partner heavy neighbor, to compare X-Tool types against
+      int reference = -1;
       for (const int b: atom_bonds[atm]) {
         const int nb = (bonds[b].source == atm) ? bonds[b].dest : bonds[b].source;
         if (is_hydrogen(basic_type[nb]))
@@ -137,20 +130,20 @@ namespace mudock {
       return true;
     };
 
-    // Eliminate non-rotors among the candidates
+    // Eliminate non-rotors from the rotor candidates
     for (int b = 0; b < num_bonds; ++b) {
       if (bond_valid[b] != 2)
         continue;
       const int a1 = bonds[b].source;
       const int a2 = bonds[b].dest;
 
-      // R-H, R-X, R-OH, R-NH2, R-CH3: a bonded heavy atom is terminal (single heavy neighbor)
+      // single heavy neighbor
       if (num_nonh[a1] == 1 || num_nonh[a2] == 1) {
         bond_valid[b] = 1;
         continue;
       }
 
-      // sp2-sp2 (and sp) rotors: both ends sp/sp2
+      // sp2/sp-sp2/sp rotors (both sp/sp2)
       const int m1 = hybridizing_mark(basic_type[a1]);
       const int m2 = hybridizing_mark(basic_type[a2]);
       int sp_mark  = 0;
@@ -163,13 +156,13 @@ namespace mudock {
         continue;
       }
 
-      // terminal symmetric rotors (-CF3, -CMe3, -PO3, -NMe3, ...)
+      // terminal symmetric rotors
       if (judge_terminal(a1, a2) || judge_terminal(a2, a1)) {
         bond_valid[b] = 1;
         continue;
       }
 
-      // abnormal rotors: an endpoint that failed typing
+      // abnormal rotors (failed typing)
       if (xs_lig.valid(a1) == x_score_validity::invalid || xs_lig.valid(a2) == x_score_validity::invalid) {
         bond_valid[b] = 1;
         continue;

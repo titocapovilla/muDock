@@ -5,15 +5,11 @@
 
 namespace mudock {
 
-  
   static constexpr fp_type x_score_dist_cutoff = fp_type{8.0};
 
-  // Integer code of the hydrophobic ("H") hydrogen-bonding class, as stored in the *_hb buffers.
   static constexpr int x_hb_hydrophobic = static_cast<int>(x_score_hb::H);
 
-  // Compute the raw X-Score terms for every ligand in the batch and write them into terms_b, laid out
-  // per ligand as x_term_count contiguous values. Both terms are pairwise grid sums over the scorable
-  // protein atoms: van der Waals (Calculate_VDW) and hydrophobic pair (Calculate_HP).
+  // Compute the X-Score terms (VDW and HP) for every ligand in the batch and write them into terms_b.
   inline void calc_x_score(const int batch_atoms,
                            const int batch_ligands,
                            const int *__restrict__ num_atoms_b,
@@ -57,8 +53,8 @@ namespace mudock {
         const fp_type lr           = lig_vdw[i];
         const bool lig_hydrophobic = (lig_hb[i] == x_hb_hydrophobic);
 
-        fp_type vdw_asum = 0; // van der Waals well, summed over protein atoms
-        fp_type hp_asum  = 0; // hydrophobic-pair ramp, summed over hydrophobic protein atoms
+        fp_type vdw_asum = 0;
+        fp_type hp_asum  = 0;
 
         for (int j = 0; j < num_prot_atoms; ++j) {
           if (!prot_scorable_b[j])
@@ -69,17 +65,16 @@ namespace mudock {
           const fp_type dz = lz - prot_z_b[j];
           const fp_type d  = std::sqrt(dx * dx + dy * dy + dz * dz);
 
-          // van der Waals (Calculate_VDW): (d0/d)^8 - 2*(d0/d)^4 within d <= cutoff 
+          // van der Waals: (d0/d)^8 - 2*(d0/d)^4 within d <= cutoff 
           if (d <= x_score_dist_cutoff) {
             const fp_type d0   = lr + prot_vdw_b[j];
             fp_type tmp1       = d0 / d;
-            tmp1               = tmp1 * tmp1 * tmp1 * tmp1; // (d0/d)^4
-            const fp_type tmp2 = tmp1 * tmp1;               // (d0/d)^8
+            tmp1               = tmp1 * tmp1 * tmp1 * tmp1;
+            const fp_type tmp2 = tmp1 * tmp1;
             vdw_asum += tmp2 - fp_type{2} * tmp1;
           }
 
-          // hydrophobic pair (Calculate_HP): linear ramp between two hydrophobic atoms,
-          // restricted to d < cutoff (strict, matching XScore's `d>=cutoff continue`) 
+          // hydrophobic pair: linear ramp between two hydrophobic atoms, restricted to d < cutoff
           if (lig_hydrophobic && prot_hb_b[j] == x_hb_hydrophobic && d < x_score_dist_cutoff) {
             const fp_type sum_r = lr + prot_vdw_b[j];
             const fp_type d1    = sum_r + fp_type{0.5};
@@ -88,16 +83,14 @@ namespace mudock {
               hp_asum += fp_type{1};
             else if (d < d2)
               hp_asum += (fp_type{1} / (d1 - d2)) * (d - d2);
-            // d >= d2 contributes nothing
           }
         }
 
-        // van der Waals: flip the sign so favorable is positive, drop unfavorable per-atom sums
+        // VDW: flip the sign: positive is favorable
         vdw_asum *= fp_type{-1};
         if (vdw_asum >= fp_type{0})
           vdw_sum += vdw_asum;
 
-        // hydrophobic pair: the per-atom contribution is kept as-is
         if (lig_hydrophobic)
           hp_sum += hp_asum;
       }
@@ -107,7 +100,7 @@ namespace mudock {
       terms[x_term_hp]            = hp_sum;
       terms[x_term_hb]            = lig_hbt_b[ligand_index];
       terms[x_term_rt]            = lig_rt_b[ligand_index];
-      // final HPScore affinity prediction, the value XScore reports as "HPScore -log(Kd)"
+      // final XScore's affinity prediction
       terms[x_term_pkd] =
           compute_x_score_pkd(terms[x_term_vdw], terms[x_term_hb], terms[x_term_hp], terms[x_term_rt]);
     }

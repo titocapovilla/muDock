@@ -6,14 +6,6 @@
 #include <mudock/type_alias.hpp>
 
 namespace mudock {
-  // X-Score scoring kernel. For now, it gathers:
-  // the van der Waals (vdw), hydrogen-bond (hb), hydrophobic-pair (hp) and rotor penalty (rt) terms.
-  // The pairwise grid terms (vdw, hp) are computed here; the ligand-only / host-reduced terms (rt, hb)
-  // are precomputed on the host and forwarded per-ligand (lig_rt_b, lig_hbt_b).
-  //
-  // The protein atom arrays are constant across the whole batch (a single target), while the ligand atom
-  // arrays are laid out per-ligand with a stride of batch_atoms. The output is written into terms_b, laid
-  // out per ligand as x_term_count contiguous raw terms (see x_score_terms.hpp).
   template<typename queue_type>
     requires std::derived_from<queue_type, queue>
   struct x_score_kernel {
@@ -74,7 +66,7 @@ namespace mudock {
     const int batch_atoms;
     const int *__restrict__ num_atoms_b;
 
-    // ligand atom data, strided per ligand by batch_atoms
+    // ligand atom data (strided per ligand by batch_atoms)
     const fp_type *__restrict__ lig_x_b;
     const fp_type *__restrict__ lig_y_b;
     const fp_type *__restrict__ lig_z_b;
@@ -82,11 +74,11 @@ namespace mudock {
     const int *__restrict__ lig_scorable_b;
     const int *__restrict__ lig_hb_b;
 
-    // per-ligand host-precomputed terms (indexed by ligand, not strided by batch_atoms)
+    // per-ligand RT and HB Terms (indexed by ligand and not strided by batch_atoms)
     const fp_type *__restrict__ lig_rt_b;
     const fp_type *__restrict__ lig_hbt_b;
 
-    // protein atom data, shared across the whole batch (single target)
+    // protein atom data, used for the entire ligand batch
     const int num_prot_atoms;
     const fp_type *__restrict__ prot_x_b;
     const fp_type *__restrict__ prot_y_b;
@@ -95,7 +87,7 @@ namespace mudock {
     const int *__restrict__ prot_scorable_b;
     const int *__restrict__ prot_hb_b;
 
-    // per-ligand raw X-Score terms (x_term_count contiguous values per ligand)
+    // per-ligand XScore terms
     fp_type *__restrict__ terms_b;
     std::shared_ptr<queue_type> q;
   };

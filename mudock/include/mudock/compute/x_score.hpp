@@ -25,22 +25,8 @@ namespace mudock {
   int get_x_score_batch(const int, std::shared_ptr<queue_type>, const size_t);
 
 #ifndef __CUDACC__
-  // X-Score scoring stage.
-  // only vdW, HB, HP and RT implemented for now
-  //
-  // The target protein is constant
-  // Each batch loads the ligand poses and runs the kernel that, for every ligand, sums the vdw and
-  // hp contributions against the protein atoms within DIST_CUTOFF. The hydrogen-bond (hb) and rotor (rt)
-  // terms are computed once per ligand on the host (compute_x_score_hb / compute_x_score_rt) and forwarded
-  // to the kernel so every term lands in the same per-ligand terms buffer. HB pairs the ligand against the
-  // protein donor/acceptor list built once in the constructor.
-  //
-  // The kernel folds the four terms into the reported score with X-Score's HPScore regression
-  // (compute_x_score_pkd), so a pose's score is a predicted -log(Kd) directly comparable to the
-  // "HPScore -log(Kd)" XScore prints.
-  //
-  // XScore's pocket filter is unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) and for the HB term (5 Å cutoff is always within the 10 Å pocket)
-  // so not implemented
+  // XScore scoring stage: vdW, HB, HP and RT implemented; HM and HS not implemented
+  // NB: XScore's protein define pocket filter seems unnecessary for the VDW term (8 Å cutoff is always within the 10 Å pocket) and for the HB term (5 Å cutoff is always within the 10 Å pocket)
   template<typename queue_type>
   struct x_score: public scoring<queue_type> {
     x_score(std::shared_ptr<scratchpad<queue_type>> _scratch,
@@ -63,7 +49,6 @@ namespace mudock {
           prot_hb(_scratch->get_queue()),
           terms(_scratch->get_queue()),
           device_scratch(_device_scratch) {
-      // Type the protein and cache its per-atom data once (single fixed target).
       x_score_protein xs_prot{protein};
       const auto &pmol = xs_prot.get_base_molecule();
       num_prot_atoms   = pmol.num_atoms();
@@ -92,8 +77,7 @@ namespace mudock {
       prot_scorable.copy_host2device();
       prot_hb.copy_host2device();
 
-      // Hydrogen-bond (HB) term: build the protein donor/acceptor atom list once,
-      // reused with every ligand in prepare().
+      // HB term: build the protein donor/acceptor atom list once, it's reused with every ligand
       prot_hb_atoms = build_protein_hb_atoms(xs_prot);
     }
 
@@ -121,8 +105,8 @@ namespace mudock {
       lig_vdw.alloc(tot_atoms_in_batch);
       lig_scorable.alloc(tot_atoms_in_batch);
       lig_hb.alloc(tot_atoms_in_batch);
-      lig_rt.alloc(batch_ligands);  // per-ligand host-computed rotor term
-      lig_hbt.alloc(batch_ligands); // per-ligand host-computed hydrogen-bond term
+      lig_rt.alloc(batch_ligands);
+      lig_hbt.alloc(batch_ligands);
       terms.alloc(batch_ligands * static_cast<int>(x_term_count));
 
 #ifdef _OPENMP
@@ -147,11 +131,11 @@ namespace mudock {
           lig_hb()[stride_atoms + i] = static_cast<int>(xs_lig.hb(i));
         }
 
-        // Rotor (RT) term: ligand-only, computed once per ligand
+        // RT Term for the ligand
         lig_rt()[ligand_index] = compute_x_score_rt(xs_lig);
 
-        // Hydrogen-bond (HB) term: geometric donor/acceptor pairing against protein list,
-        // per-ligand filtering step
+        // HB Term for the ligands
+        // NB: Calculated once per ligand, but pose dependent
         x_score_hb_atoms lig_hb_atoms = build_ligand_hb_atoms(xs_lig);
         lig_hbt()[ligand_index] = compute_x_score_hb(lig_hb_atoms, prot_hb_atoms);
       }
@@ -203,11 +187,11 @@ namespace mudock {
       mem += sizeof(fp_type) * max_atoms;         // lig y
       mem += sizeof(fp_type) * max_atoms;         // lig z
       mem += sizeof(fp_type) * max_atoms;         // lig vdw radius
-      mem += sizeof(int) * max_atoms;             // lig scorable mask
+      mem += sizeof(int) * max_atoms;             // lig scorable flag
       mem += sizeof(int) * max_atoms;             // lig hb class
       mem += sizeof(fp_type);                     // lig rotor term
-      mem += sizeof(fp_type);                     // lig hydrogen-bond term
-      mem += sizeof(fp_type) * x_term_count;      // per-ligand raw terms
+      mem += sizeof(fp_type);                     // lig HB term
+      mem += sizeof(fp_type) * x_term_count;      // per-ligand XScore terms
       return mem;
     }
 
@@ -216,7 +200,7 @@ namespace mudock {
     int batch_atoms{0};
     int num_prot_atoms{0};
 
-    // ligand atom data (per batch)
+    // ligand atom data
     buffer_vector<fp_type, queue_type> lig_x;
     buffer_vector<fp_type, queue_type> lig_y;
     buffer_vector<fp_type, queue_type> lig_z;
@@ -226,7 +210,7 @@ namespace mudock {
     buffer_vector<fp_type, queue_type> lig_rt;
     buffer_vector<fp_type, queue_type> lig_hbt; 
 
-    // protein atom data (cached once)
+    // protein atom data
     buffer_vector<fp_type, queue_type> prot_x;
     buffer_vector<fp_type, queue_type> prot_y;
     buffer_vector<fp_type, queue_type> prot_z;
@@ -234,25 +218,21 @@ namespace mudock {
     buffer_vector<int, queue_type> prot_scorable;
     buffer_vector<int, queue_type> prot_hb;
 
-    // protein hydrogen-bond donor/acceptor atom data, saved once for the whole batch
+    // protein HB donor/acceptor
     x_score_hb_atoms prot_hb_atoms;
 
-    // per-ligand raw X-Score terms (x_term_count contiguous values per ligand)
+    // per-ligand XScore terms (x_term_count values per ligand)
     buffer_vector<fp_type, queue_type> terms;
 
     std::shared_ptr<scratchpad<queue_type>> device_scratch;
     std::unique_ptr<x_score_kernel<queue_type>> kernel;
 
-    // XScore vdw gating: a ligand atom contributes if it was typed (valid) and is not a
-    // hydrogen (H / H.hb / Hg).
     static inline bool is_ligand_scorable(const x_score_validity v, const xtool_ff t) {
       if (v == x_score_validity::invalid)
         return false;
       return t != xtool_ff::H && t != xtool_ff::Hhb && t != xtool_ff::Hg;
     }
 
-    // XScore vdw gating: a protein atom contributes if it was typed (valid) and is not a
-    // hydrogen (H / H.hb / Hg) nor a water oxygen (Ow).
     static inline bool is_protein_scorable(const x_score_validity v, const xtool_ff t) {
       if (v == x_score_validity::invalid)
         return false;
@@ -273,7 +253,6 @@ namespace mudock {
         const fp_type rt  = t[x_term_rt];
         const fp_type pkd = t[x_term_pkd];
 
-        // the score of a pose is its predicted affinity, -log(Kd)
         for (std::size_t s = 0; s < scores_per_ligand; ++s)
           scores_b()[i * scores_per_ligand + s] = pkd;
 
