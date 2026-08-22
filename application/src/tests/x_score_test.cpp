@@ -37,8 +37,8 @@ namespace {
 
   constexpr std::array<std::string_view, 5> term_names{"VDW", "HB", "HP", "RT", "PKD"};
 
-  constexpr mudock::fp_type abs_tol = mudock::fp_type{1e-4};
-  constexpr mudock::fp_type rel_tol = mudock::fp_type{1e-4};
+  constexpr mudock::fp_type abs_tol = mudock::fp_type{1e-4f};
+  constexpr mudock::fp_type rel_tol = mudock::fp_type{1e-4f};
 
   [[nodiscard]] mudock::fp_type tolerance_for(const mudock::fp_type reference) {
     return abs_tol + rel_tol * std::fabs(reference);

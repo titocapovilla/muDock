@@ -93,8 +93,10 @@ namespace mudock {
                               std::shared_ptr<queue_type> q,
                               const knobs& conf,
                               const size_t max_mem = 1000000000) {
-      const int mem = mudock::x_score<queue_type>::get_ligand_mem(atoms, conf);
-      return get_x_score_batch<queue_type>(atoms, q, max_mem / mem);
+      const size_t mem_per_ligand =
+          static_cast<size_t>(mudock::x_score<queue_type>::get_ligand_mem(atoms, conf));
+      const size_t max_bucket_size = std::max<size_t>(1, max_mem / mem_per_ligand);
+      return get_x_score_batch<queue_type>(atoms, q, max_bucket_size);
     }
   };
 

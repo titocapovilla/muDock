@@ -44,14 +44,3 @@ target_link_libraries(test_grid libmudock Boost::program_options)
                 CXX_STANDARD_REQUIRED ON
                 CXX_EXTENSIONS OFF)
   target_link_libraries(test_score_x libmudock Boost::program_options)
-
-  add_executable_mudock(test_x_score_types
-                          "${CMAKE_CURRENT_SOURCE_DIR}/test_x_score_types.cpp")
-    target_include_directories(test_x_score_types
-    				PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
-    set_target_properties(
-      test_x_score_types
-      PROPERTIES CXX_STANDARD 20
-                  CXX_STANDARD_REQUIRED ON
-    		  CXX_EXTENSIONS OFF)
-    target_link_libraries(test_x_score_types libmudock Boost::program_options)

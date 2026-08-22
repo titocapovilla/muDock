@@ -77,8 +77,8 @@ namespace mudock {
           // hydrophobic pair: linear ramp between two hydrophobic atoms, restricted to d < cutoff
           if (lig_hydrophobic && prot_hb_b[j] == x_hb_hydrophobic && d < x_score_dist_cutoff) {
             const fp_type sum_r = lr + prot_vdw_b[j];
-            const fp_type d1    = sum_r + fp_type{0.5};
-            const fp_type d2    = sum_r + fp_type{2.2};
+            const fp_type d1    = sum_r + fp_type{0.5f};
+            const fp_type d2    = sum_r + fp_type{2.2f};
             if (d < d1)
               hp_asum += fp_type{1};
             else if (d < d2)

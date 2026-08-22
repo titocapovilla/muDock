@@ -18,11 +18,11 @@ namespace mudock {
   //
   //   pKd = c0 + cvdw*vdw + chb*hb + chp*hp + crt*rt          (XScore's pkd1)
   //
-  static constexpr fp_type x_hpscore_cvdw = fp_type{0.004};
-  static constexpr fp_type x_hpscore_chb  = fp_type{0.054};
-  static constexpr fp_type x_hpscore_chp  = fp_type{0.009};
-  static constexpr fp_type x_hpscore_crt  = fp_type{-0.061};
-  static constexpr fp_type x_hpscore_c0   = fp_type{3.441};
+  static constexpr fp_type x_hpscore_cvdw = fp_type{0.004f};
+  static constexpr fp_type x_hpscore_chb  = fp_type{0.054f};
+  static constexpr fp_type x_hpscore_chp  = fp_type{0.009f};
+  static constexpr fp_type x_hpscore_crt  = fp_type{-0.061f};
+  static constexpr fp_type x_hpscore_c0   = fp_type{3.441f};
 
   // Regression function
   [[nodiscard]] constexpr fp_type compute_x_score_pkd(const fp_type vdw,

@@ -179,7 +179,7 @@ namespace mudock {
     }
 
     static int get_ligand_mem(const int max_atoms, const knobs conf) {
-      int mem{0};
+      std::size_t mem{0};
       const int scores_per_ligand = std::max(1, static_cast<int>(conf.population_number));
       mem += sizeof(fp_type) * scores_per_ligand; // scores
       mem += sizeof(int);                         // num atoms
@@ -192,7 +192,7 @@ namespace mudock {
       mem += sizeof(fp_type);                     // lig rotor term
       mem += sizeof(fp_type);                     // lig HB term
       mem += sizeof(fp_type) * x_term_count;      // per-ligand XScore terms
-      return mem;
+      return static_cast<int>(mem);
     }
 
   private:

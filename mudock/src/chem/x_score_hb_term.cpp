@@ -330,7 +330,7 @@ namespace mudock {
       const int a_type = acceptor.acceptor_type[ai];
 
       const fp_type d0 = donor.radius[di] + acceptor.radius[ai];
-      const fp_type d1 = 0, d2 = 1, d3 = d0 - fp_type{0.4}, d4 = d0 + fp_type{0.2};
+      const fp_type d1 = 0, d2 = 1, d3 = d0 - fp_type{0.4f}, d4 = d0 + fp_type{0.2f};
 
       fp_type tmp1;
       if (d < d1)
@@ -347,7 +347,7 @@ namespace mudock {
       fp_type tmp3 = 1;
       if (mark1) {
         if (d_type == 1)
-          tmp3 = ramp(a1, 0, fp_type{0.001}, 25, 50);
+          tmp3 = ramp(a1, 0, fp_type{0.001f}, 25, 50);
         else
           tmp3 = ramp(a1, 25, 50, 75, 100);
       }
@@ -355,7 +355,7 @@ namespace mudock {
       fp_type tmp4 = 1;
       if (mark2) {
         if (a_type == 1)
-          tmp4 = ramp(a2, 0, fp_type{0.001}, 30, 55);
+          tmp4 = ramp(a2, 0, fp_type{0.001f}, 30, 55);
         else
           tmp4 = ramp(a2, 0, 5, 70, 95);
       }
@@ -494,7 +494,7 @@ namespace mudock {
     // sum the survived contributions
     fp_type sum = 0;
     for (const auto& c: candidates)
-      if (std::fabs(c.score) >= fp_type{0.01})
+      if (std::fabs(c.score) >= fp_type{0.01f})
         sum += c.score;
 
     return sum;

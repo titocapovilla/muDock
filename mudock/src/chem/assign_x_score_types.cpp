@@ -377,19 +377,19 @@ namespace mudock {
     assign_xtool_types_from_sybyl(layer);
 
     const auto& mol             = layer.get_base_molecule();
-    const std::size_t num_atoms = mol.num_atoms();
+    const int num_atoms = mol.num_atoms();
     const auto sybyl_types = mol.get_atom_type();
 
     const auto graph = make_graph(mol.get_bonds(), num_atoms);
 
     const auto xscore_aromatic = detect_xscore_aromaticity(graph, sybyl_types, mol.get_bonds(), num_atoms);
 
-    for (std::size_t i = 0; i < num_atoms; ++i) {
+    for (int i = 0; i < num_atoms; ++i) {
       atom_environment env;
 
       auto [vi, vi_end] = boost::adjacent_vertices(i, graph);
       for (; vi != vi_end; ++vi) {
-        const int neighbor_idx   = *vi;
+        const auto neighbor_idx   = *vi;
         const xtool_ff neib_type = sybyl_types[neighbor_idx];
 
         if (is_hydrogen_type(neib_type)) {
