@@ -7,7 +7,7 @@
 #include <string_view>
 
 //===------------------------------------------------------------------------------------------------------
-// WARNING: This file has been automatically generated from chem/x_score_xtool_types.json
+// WARNING: This file has been automatically generated from chem/x_score_xtool_types.json and subsequently modified manually
 //===------------------------------------------------------------------------------------------------------
 
 namespace mudock {

@@ -140,7 +140,7 @@ namespace mudock {
   }
 
   static std::vector<bool> detect_xscore_aromaticity(const molecule_graph_type& graph,
-                                                     const std::span<const xtool_ff> sybyl_types,
+                                                     const std::span<const xtool_ff> atom_types,
                                                      const std::span<const bond> bonds,
                                                      const std::size_t num_atoms) {
     std::vector<bool> xscore_aromatic(num_atoms, false);
@@ -268,7 +268,7 @@ namespace mudock {
         bool all_pi  = true;
         int pi_count = 0;
         for (int atom_idx: ring_atoms) {
-          if (is_6ring_pi_atom(sybyl_types[atom_idx])) {
+          if (is_6ring_pi_atom(atom_types[atom_idx])) {
             pi_count++;
           } else {
             all_pi = false;
@@ -327,7 +327,7 @@ namespace mudock {
         int total_pi = 0;
         std::vector<int> pi_per_atom(5);
         for (int j = 0; j < 5; ++j) {
-          int pi = get_5ring_pi_count(sybyl_types[ring_atoms[j]]);
+          int pi = get_5ring_pi_count(atom_types[ring_atoms[j]]);
           if (pi == 0) {
             valid = false;
             break;

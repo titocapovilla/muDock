@@ -28,6 +28,9 @@ namespace mudock {
         mudock::resize(atom_vdw_radius, num_atoms);
         mudock::resize(atom_x_score_valid, num_atoms);
 
+        // not populated yet: initialized as Un
+        mudock::fill(atom_x_score_xlogp_type, xlogp_ff::Un);
+
         prepare();
     }
 
@@ -80,6 +83,7 @@ namespace mudock {
 
   private:
     atoms_array_type<xtool_ff> atom_x_score_xtool_type;
+    // XLogP atom typing: not populated yet. Input required by XScore's HM and HS (not yet implemented)
     atoms_array_type<xlogp_ff> atom_x_score_xlogp_type;
     atoms_array_type<x_score_hb> atom_x_score_hb;
     atoms_array_type<fp_type> atom_vdw_radius;

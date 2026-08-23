@@ -104,7 +104,7 @@ namespace mudock {
                        const int num_nonh,
                        const x_score_hb hb,
                        const std::string_view name,
-                       const std::string_view residue) {
+                       const residue res) {
       if (hb != x_score_hb::D && hb != x_score_hb::DA && hb != x_score_hb::M)
         return 0;
 
@@ -116,11 +116,11 @@ namespace mudock {
         if (is_N4(xtype) || is_N3(xtype))
           return 2;
         if (is_Npl3(xtype) || is_N2(xtype) || is_Nar(xtype)) {
-          if (name.find("NH") != std::string_view::npos && residue.find("ARG") != std::string_view::npos)
+          if (name.find("NH") != std::string_view::npos && res == residue::ARG)
             return 2;
-          if (name.find("ND") != std::string_view::npos && residue.find("ASN") != std::string_view::npos)
+          if (name.find("ND") != std::string_view::npos && res == residue::ASN)
             return 2;
-          if (name.find("NE") != std::string_view::npos && residue.find("GLN") != std::string_view::npos)
+          if (name.find("NE") != std::string_view::npos && res == residue::GLN)
             return 2;
           return 1;
         }
@@ -276,15 +276,13 @@ namespace mudock {
         }
 
         const xtool_ff xtype = layer.x_score_xtool_type(i);
-        std::string_view name, residue;
+        std::string_view name;
+        residue res = residue::UNKNOWN;
         if constexpr (is_protein) {
           name = mol.atom_name(i);
-
-          const int rid = static_cast<int>(mol.residue_types(i));
-          if (rid >= 0 && rid < num_residues())
-            residue = get_description(mol.residue_types(i)).name;
+          res  = mol.residue_types(i);
         }
-        atoms.donor_type.push_back(get_donor_type(origin, basic, xtype, num_nonh, hb, name, residue));
+        atoms.donor_type.push_back(get_donor_type(origin, basic, xtype, num_nonh, hb, name, res));
         atoms.acceptor_type.push_back(get_acceptor_type(origin, basic, xtype, num_nonh, hb));
 
         atoms.donor_limit.push_back(donor_limit_of(hb, num_h));

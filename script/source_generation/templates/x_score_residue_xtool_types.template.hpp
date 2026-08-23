@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 //===------------------------------------------------------------------------------------------------------
-// WARNING: This file has been automatically generated from chem/x_score_residue_xtool_types.json
+// WARNING: This file has been automatically generated from chem/x_score_residue_xtool_types.json and subsequently modified manually
 //===------------------------------------------------------------------------------------------------------
 
 namespace mudock {

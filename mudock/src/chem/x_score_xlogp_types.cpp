@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 //===------------------------------------------------------------------------------------------------------
-// WARNING: This file has been automatically generated from chem/xlogp_types.json
+// WARNING: This file has been automatically generated from chem/xlogp_types.json and subsequently modified manually
 //===------------------------------------------------------------------------------------------------------
 
 namespace mudock {

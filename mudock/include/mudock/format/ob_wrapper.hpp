@@ -127,24 +127,10 @@ namespace mudock {
           // remove spaces from atom name, e.g. " CA " -> "CA"
           atom_name.erase(std::remove(atom_name.begin(), atom_name.end(), ' '), atom_name.end());
           dest.atom_name(mudock_atom_index) = atom_name;
-          // residue sequence number + chain id, needed to tell apart two instances of the
-          // same residue type on the protein
-          dest.res_id(mudock_atom_index) = ob_res->GetNum();
-          dest.chain(mudock_atom_index)  = ob_res->GetChain();
         } else {
           dest.residue_types(mudock_atom_index) = residue::UNKNOWN;
-          //TODO: check if we should leave empty string or assign "UNKNOWN" as well
           dest.atom_name(mudock_atom_index) = "UNKNOWN";
-          dest.res_id(mudock_atom_index)    = -1;
-          dest.chain(mudock_atom_index)     = ' ';
         }
-      }
-
-      // assigning atom_type for ligands
-      // todo: remove this if, the alternative parsing is done at the layer stage
-      if constexpr (std::same_as<std::remove_cvref_t<molecule_type>, static_molecule>) {
-        //dest.atom_type(mudock_atom_index) = parse_xtool_type(atom_type);
-        //std::cout << "Atom_type: " << get_description(dest.atom_type(mudock_atom_index)).name << '\n';
       }
 
       index_translator.emplace(atom_id, mudock_atom_index);
