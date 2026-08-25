@@ -102,6 +102,11 @@ if(MUDOCK_ENABLE_IPO)
   endif()
 endif()
 
+option(
+  OVERRIDE_PRECOMPUTE_OPT
+  "Compile selected precompute-heavy sources with -O2"
+  OFF)
+
 #MPI
 option(MUDOCK_ENABLE_MPI "Enable MPI support" OFF)
 if(MUDOCK_ENABLE_MPI)
@@ -473,10 +478,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # ##############################################################################
 
 # Third-party libraries that must be manually installed
-find_package(Boost QUIET CONFIG COMPONENTS program_options graph fiber)
+find_package(Boost QUIET CONFIG COMPONENTS program_options graph)
 if(NOT Boost_FOUND)
-  find_package(Boost REQUIRED COMPONENTS program_options graph fiber)
+  find_package(Boost REQUIRED COMPONENTS program_options graph)
 endif()
+find_package(Eigen3 NO_MODULE) # pre-req of OpenBabel
 find_package(OpenBabel3 REQUIRED)
 set(CMAKE_ENABLE_EXPORTS ON)
 
@@ -564,6 +570,10 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
 endif()
 
 mudock_print_config("Fast mode" "${MUDOCK_ENABLE_FAST}" "MUDOCK_ENABLE_FAST")
+if(OVERRIDE_PRECOMPUTE_OPT)
+  mudock_print_config("Override precompute opt" "${OVERRIDE_PRECOMPUTE_OPT}"
+                      "OVERRIDE_PRECOMPUTE_OPT")
+endif()
 
 if(MUDOCK_ENABLE_TEST)
   mudock_print_config("Enable Test" "${MUDOCK_ENABLE_TEST}"
